@@ -1,0 +1,152 @@
+dexNo;name;rarity;type1;type2
+1;Bulbasaur;rare;grass;poison
+2;Ivysaur;very rare;grass;poison
+3;Venusaur;epic;grass;poison
+4;Charmander;rare;fire;NONE
+5;Charmeleon;very rare;fire;NONE
+6;Charizard;epic;fire;flying
+7;Squirtle;rare;water;NONE
+8;Wartortle;very rare;water;NONE
+9;Blastoise;epic;water;NONE
+10;Caterpie;common;bug;NONE
+11;Metapod;uncommon;bug;NONE
+12;Butterfree;rare;bug;flying
+13;Weedle;common;bug;poison
+14;Kakuna;uncommon;bug;poison
+15;Beedrill;very rare;bug;poison
+16;Pidgey;common;normal;flying
+17;Pidgeotto;uncommon;normal;flying
+18;Pidgeot;very rare;normal;flying
+19;Rattata;common;normal;NONE
+20;Raticate;uncommon;normal;NONE
+21;Spearow;uncommon;normal;flying
+22;Fearow;rare;normal;flying
+23;Ekans;common;poison;NONE
+24;Arbok;rare;poison;NONE
+25;Pikachu;rare;electric;NONE
+26;Raichu;very rare;electric;NONE
+27;Sandshrew;common;ground;NONE
+28;Sandslash;rare;ground;NONE
+29;Nidoran;common;poison;NONE
+30;Nidorina;rare;poison;NONE
+31;Nidoqueen;very rare;poison;ground
+32;Nidoran;common;poison;NONE
+33;Nidorino;rare;poison;NONE
+34;Nidoking;very rare;poison;ground
+35;Clefairy;uncommon;fairy;NONE
+36;Clefable;epic;fairy;NONE
+37;Vulpix;uncommon;fire;NONE
+38;Ninetales;very rare;fire;NONE
+39;Jigglypuff;uncommon;normal;fairy
+40;Wigglytuff;very rare;normal;fairy
+41;Zubat;common;poison;flying
+42;Golbat;rare;poison;flying
+43;Oddish;common;grass;poison
+44;Gloom;rare;grass;poison
+45;Vileplume;very rare;grass;poison
+46;Paras;common;bug;grass
+47;Parasect;very rare;bug;grass
+48;Venonat;common;bug;poison
+49;Venomoth;very rare;bug;poison
+50;Diglett;common;ground;NONE
+51;Dugtrio;very rare;ground;NONE
+52;Meowth;common;normal;NONE
+53;Persian;very rare;normal;NONE
+54;Psyduck;uncommon;water;NONE
+55;Golduck;rare;water;NONE
+56;Mankey;common;fighting;NONE
+57;Primeape;very rare;fighting;NONE
+58;Growlithe;rare;fire;NONE
+59;Arcanine;very rare;fire;NONE
+60;Poliwag;common;water;NONE
+61;Poliwhirl;rare;water;NONE
+62;Poliwrath;very rare;water;fighting
+63;Abra;uncommon;psychic;NONE
+64;Kadabra;rare;psychic;NONE
+65;Alakazam;very rare;psychic;NONE
+66;Machop;common;fighting;NONE
+67;Machoke;rare;fighting;NONE
+68;Machamp;very rare;fighting;NONE
+69;Bellsprout;common;grass;poison
+70;Weepinbell;rare;grass;poison
+71;Victreebel;very rare;grass;poison
+72;Tentacool;uncommon;water;poison
+73;Tentacruel;rare;water;poison
+74;Geodude;common;rock;ground
+75;Graveler;rare;rock;ground
+76;Golem;very rare;rock;ground
+77;Ponyta;uncommon;fire;NONE
+78;Rapidash;rare;fire;NONE
+79;Slowpoke;common;water;psychic
+80;Slowbro;very rare;water;psychic
+81;Magnemite;common;electric;steel
+82;Magneton;rare;electric;steel
+83;Farfetch\'d;rare;normal;flying
+84;Doduo;common;normal;flying
+85;Dodrio;rare;normal;flying
+86;Seel;uncommon;water;NONE
+87;Dewgong;very rare;water;ice
+88;Grimer;uncommon;poison;NONE
+89;Muk;very rare;poison;NONE
+90;Shellder;uncommon;water;NONE
+91;Cloyster;rare;water;ice
+92;Gastly;common;ghost;poison
+93;Haunter;rare;ghost;poison
+94;Gengar;very rare;ghost;poison
+95;Onix;rare;rock;ground
+96;Drowzee;common;psychic;NONE
+97;Hypno;rare;psychic;NONE
+98;Krabby;common;water;NONE
+99;Kingler;rare;water;NONE
+100;Voltorb;common;electric;NONE
+101;Electrode;rare;electric;NONE
+102;Exeggcute;uncommon;grass;psychic
+103;Exeggutor;very rare;grass;psychic
+104;Cubone;uncommon;ground;NONE
+105;Marowak;very rare;ground;NONE
+106;Hitmonlee;rare;fighting;NONE
+107;Hitmonchan;rare;fighting;NONE
+108;Lickitung;rare;normal;NONE
+109;Koffing;uncommon;poison;NONE
+110;Weezing;very rare;poison;NONE
+111;Rhyhorn;rare;ground;rock
+112;Rhydon;very rare;ground;rock
+113;Chansey;rare;normal;NONE
+114;Tangela;uncommon;grass;NONE
+115;Kangaskhan;very rare;normal;NONE
+116;Horsea;uncommon;water;NONE
+117;Seadra;very rare;water;NONE
+118;Goldeen;common;water;NONE
+119;Seaking;rare;water;NONE
+120;Staryu;uncommon;water;NONE
+121;Starmie;rare;water;psychic
+122;Mr. Mime;rare;psychic;fairy
+123;Scyther;rare;bug;flying
+124;Jynx;uncommon;ice;psychic
+125;Electabuzz;rare;electric;NONE
+126;Magmar;rare;fire;NONE
+127;Pinsir;rare;bug;NONE
+128;Tauros;very rare;normal;NONE
+129;Magikarp;common;water;NONE
+130;Gyarados;epic;water;flying
+131;Lapras;very rare;water;ice
+132;Ditto;epic;normal;NONE
+133;Evee;common;normal;NONE
+134;Vaporeon;epic;water;NONE
+135;Jolteon;epic;electric;NONE
+136;Flareon;epic;fire;NONE
+137;Porygon;very rare;normal;NONE
+138;Omanyte;;rock;water
+139;Omastar;very rare;rock;water
+140;Kabuto;;rock;water
+141;Kabutops;very rare;rock;water
+142;Aerodactyl;rare;rock;flying
+143;Snorlax;rare;normal;NONE
+144;Articuno;legendary;ice;flying
+145;Zapdos;legendary;electric;flying
+146;Moltres;legendary;fire;flying
+147;Dratini;rare;dragon;NONE
+148;Dragonair;very rare;dragon;NONE
+149;Dragonite;epic;dragon;flying
+150;Mewtwo;legendary;psychic;NONE
+151;Mew;mythic;psychic;NONE
