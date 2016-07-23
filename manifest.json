@@ -1,0 +1,30 @@
+{
+	"content_scripts": [
+		{
+			"js": [
+				"lib/lodash.min.js",
+				"main.js"
+			],
+			"matches": [
+				"*://pokevision.com/*"
+			]
+		}
+	],
+	"icons": {
+		"48": "icons/icon48.png",
+		"128": "icons/icon128.png"
+	},
+	"permissions": [
+		"activeTab",
+		"storage",
+		"tabs"
+	],
+	"web_accessible_resources": [
+		"injected.js",
+		"lib/lodash.min.js"
+	],
+	"description": "PokéVision Filter",
+	"manifest_version": 2,
+	"name": "PokéVision Filter",
+	"version": "1.0.0"
+}
