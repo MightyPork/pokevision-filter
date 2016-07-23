@@ -1,8 +1,13 @@
 "use strict";
 
-console.log("Loading PokéVision Filter!");
-
 (function (app) {
+	if (_.isUndefined(app) || $('main').hasClass('error')) {
+		console.warn('Either the site scripts changed, or it didn\'t load right.\nCannot init PokéVision Filter.');
+		return;
+	}
+
+	console.log("Loading PokéVision Filter!");
+
 	var self = app.home;
 	var pokedex = self.pokedex;
 	var invPokedex = _.invert(self.pokedex); // for lookup by name
