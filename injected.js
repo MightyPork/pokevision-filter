@@ -13,7 +13,7 @@ var PokemonFilter = new function () {
 
 	var TOTAL_POKEMON_COUNT = 150;
 
-	self.blacklist = localStorage.getItem('pokemon_blacklist') || [];
+	self.blacklist = [];
 
 	/** Check if a Pokémon is blacklisted */
 	this.isBlacklisted = function(id) {
@@ -27,12 +27,13 @@ var PokemonFilter = new function () {
 			return;
 		}
 
+		self.loadConfig();
+
+		console.log('Blacklist = ',JSON.stringify(self.blacklist));
+
 		self.installFilter();
 		self.applyBlacklist();
 		self.createFilterPane();
-
-		// Remove annoying empty ad containers - because why not
-		$('.ad-unit').remove();
 
 		console.info("Initialized PokéVision Filter!");
 	};
@@ -71,8 +72,19 @@ var PokemonFilter = new function () {
 		};
 	};
 
-	this.persist = function() {
-		localStorage.setItem('pokemon_blacklist', self.blacklist);
+	this.loadConfig = function() {
+		var str = localStorage.getItem('pokemon_blacklist') || '[]';
+
+		try {
+			self.blacklist = JSON.parse(str);
+		} catch(e) {
+			console.warn("Saved blacklist corrupted, cleaning up.");
+			self.blacklist = [];
+		}
+	};
+
+	this.persistConfig = function() {
+		localStorage.setItem('pokemon_blacklist', JSON.stringify(self.blacklist));
 	};
 
 	this.togglePokemon = function(id, state) {
@@ -99,7 +111,7 @@ var PokemonFilter = new function () {
 
 		// Hide / show
 		self.applyBlacklist();
-		self.persist();
+		self.persistConfig();
 	};
 
 	this.createFilterPane = function() {
@@ -140,7 +152,7 @@ var PokemonFilter = new function () {
 			$('.x-filter-pokemon').addClass('filter-hidden');
 			self.blacklist = _.range(1, TOTAL_POKEMON_COUNT+1);
 			self.applyBlacklist();
-			self.persist();
+			self.persistConfig();
 
 			app.success('Enable the ones you want, then click the map or refresh the page.', 'All species hidden.')
 		});
@@ -149,7 +161,7 @@ var PokemonFilter = new function () {
 			$('.x-filter-pokemon').removeClass('filter-hidden');
 			self.blacklist = [];
 			self.applyBlacklist();
-			self.persist();
+			self.persistConfig();
 
 			app.success('Refresh the page or click the map to load them.', 'All species visible.')
 		});
