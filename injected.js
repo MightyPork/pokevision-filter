@@ -29,7 +29,7 @@ var PokemonFilter = new function () {
 
 		self.loadConfig();
 
-		console.log('Blacklist = ',JSON.stringify(self.blacklist));
+		self.DEBUG && console.log('Blacklist = ',JSON.stringify(self.blacklist));
 
 		self.installFilter();
 		self.applyBlacklist();
