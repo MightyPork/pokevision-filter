@@ -12,7 +12,42 @@
 		&.filter-hidden {
 			opacity: .3;
 			&:hover {
-				opacity: .9;
+				opacity: .7;
+			}
+		}
+	}
+
+	> .toggles {
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+
+		> * {
+			display: inline-block;
+			padding: 0 6px;
+			font-size: 110%;
+			vertical-align: center;
+		}
+
+		.label {
+			margin-right: auto;
+			color: #222;
+			font-weight: bold;
+		}
+
+		a {
+			cursor: pointer;
+			display: inline-block;
+			text-decoration: none;
+			color: #222;
+			font-weight: bold;
+			margin: 5px;
+			border-radius: 3px;
+
+			background: rgba(black, .1);
+			&:hover {
+				background: #259EFF;
+				color: white;
 			}
 		}
 	}

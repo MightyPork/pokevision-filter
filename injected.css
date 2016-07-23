@@ -8,6 +8,31 @@
     .PokemonFilter img.filter-hidden {
       opacity: .3; }
       .PokemonFilter img.filter-hidden:hover {
-        opacity: .9; }
+        opacity: .7; }
+  .PokemonFilter > .toggles {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center; }
+    .PokemonFilter > .toggles > * {
+      display: inline-block;
+      padding: 0 6px;
+      font-size: 110%;
+      vertical-align: center; }
+    .PokemonFilter > .toggles .label {
+      margin-right: auto;
+      color: #222;
+      font-weight: bold; }
+    .PokemonFilter > .toggles a {
+      cursor: pointer;
+      display: inline-block;
+      text-decoration: none;
+      color: #222;
+      font-weight: bold;
+      margin: 5px;
+      border-radius: 3px;
+      background: rgba(0, 0, 0, 0.1); }
+      .PokemonFilter > .toggles a:hover {
+        background: #259EFF;
+        color: white; }
 
 /*# sourceMappingURL=injected.css.map */

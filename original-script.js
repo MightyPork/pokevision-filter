@@ -1,165 +1,3 @@
-var App = new function () {
-	var self = this;
-	this.adBlock = false;
-	this.lightbox = null;
-	this.init = function () {
-		var $body = $('body'), s = $('[data-toggle=tooltip]'), e = $('[data-toggle=tab]');
-		this.lightbox = lity();
-		toastr.options.newestOnTop = true;
-		toastr.options.progressBar = true;
-		toastr.options.positionClass = 'toast-bottom-left';
-		s.tooltip({container: 'body'});
-		e.on('click', function () {
-			var t = $(this), e = t.parents('[data-toggle-container]'), n = e.find('[data-toggle=tab]'), i = t.data('target'), s = $(i), o = s.parents('.tabs'), a = o.find('.tab-pane');
-			n.removeClass('is-active');
-			t.addClass('is-active');
-			a.removeClass('is-active');
-			s.addClass('is-active');
-			return false
-		});
-		$body.on('click', '[data-href]', function () {
-			var t = $(this), s = t.data('href'), e = t.attr('target');
-			if (e == '_blank') {
-				window.open(s, '_blank')
-			}
-			else {
-				window.location = s
-			}
-			;
-			return false
-		});
-		$body.on('click', '[data-lightbox]', this.lightbox)
-	};
-	this.request = function (t, s, e) {
-		return $.ajax({
-			url: t, type: 'get', dataType: 'json', success: function (t) {
-				if (!t) {
-					e('The response from the server was empty.')
-				}
-				else if (t.status == 'success') {
-					s(t)
-				}
-				else {
-					e(t.message)
-				}
-			}, error: function (t, s) {
-				e('The response from the server was invalid.')
-			}
-		})
-	};
-	this.postRequest = function (t, s, n, e) {
-		return $.ajax({
-			url: t, type: 'post', data: s, dataType: 'json', success: function (t) {
-				if (!t) {
-					e('The response from the server was empty.')
-				}
-				else if (t.status == 'success') {
-					n(t)
-				}
-				else {
-					e(t.message)
-				}
-			}, error: function (t, s) {
-				e('The response from the server was invalid.')
-			}
-		})
-	};
-	this.info = function (t, s) {
-		return toastr.info(t, s)
-	};
-	this.warning = function (t, s) {
-		return toastr.warning(t, s)
-	};
-	this.success = function (t, s) {
-		return toastr.success(t, s)
-	};
-	this.error = function (t, s) {
-		return toastr.error(t, s)
-	};
-	this.isMobile = function () {
-		return $(window).width() < 768
-	};
-	this.checkAdBlock = function () {
-		var e = $('body'), n = $('.ad-unit-hidden'), s = function () {
-			if (n.is(':hidden')) {
-				e.addClass('is-adblocked');
-				return self.adBlock = true
-			}
-			;
-			return false
-		};
-		setTimeout(s, 100);
-		return s()
-	}
-};
-;App.header = new function () {
-	var e = this;
-	this.init = function () {
-		var e = $('.header-map-search'), t = $('.header-map-locate');
-		e.each(function () {
-			var o = $(this), t = o.find('[name=name]'), e = o.find('[type=submit]');
-			t.on('keyup', function () {
-				var o = t.val().trim();
-				if (o) {
-					e.removeAttr('disabled')
-				}
-				else {
-					e.attr('disabled', true)
-				}
-			});
-			o.on('submit', function () {
-				var o = encodeURIComponent(t.val().trim());
-				t.attr('disabled', true);
-				e.attr('disabled', true);
-				e.html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>');
-				App.request('/map/lookup/' + o, function (o) {
-					t.removeAttr('disabled');
-					e.removeAttr('disabled');
-					e.html('<span class="glyphicon glyphicon-search"></span>');
-					if (!App.home.initialised) {
-						window.location = '/#/@' + o.latitude + ',' + o.longitude
-					}
-					else {
-						App.home.latitude = o.latitude;
-						App.home.longitude = o.longitude;
-						App.home.map.panTo({lat: o.latitude, lng: o.longitude});
-						App.home.markers.center.setLatLng({lat: o.latitude, lng: o.longitude});
-						App.home.updateMarkers();
-						App.home.findNearbyPokemon(o.latitude, o.longitude);
-						window.location.hash = '#/@' + o.latitude + ',' + o.longitude
-					}
-				}, function (o) {
-					t.removeAttr('disabled');
-					e.removeAttr('disabled');
-					e.html('<span class="glyphicon glyphicon-remove-sign"></span>');
-					App.error(o)
-				});
-				return false
-			})
-		});
-		t.on('click', function () {
-			if (navigator.geolocation) {
-				navigator.geolocation.getCurrentPosition(function (e) {
-					var t = e.coords.latitude, o = e.coords.longitude;
-					App.home.latitude = t;
-					App.home.longitude = o;
-					App.home.map.panTo({lat: t, lng: o});
-					App.home.markers.center.setLatLng({lat: t, lng: o});
-					App.home.updateMarkers();
-					App.home.findNearbyPokemon(t, o);
-					window.location.hash = '#/@' + t + ',' + o
-				}, function (e) {
-					App.error(e.message)
-				})
-			}
-			else {
-				App.error('Your browser doesn\'t support location tracking, sorry!')
-			}
-			;
-			return false
-		})
-	}
-};
 ;App.home = new function () {
 	var e = this;
 	this.TIMER_JOB = 2500;
@@ -167,9 +5,9 @@ var App = new function () {
 	this.TIMER_ERROR = 30000;
 	this.TIMER_SCAN_ERROR = 30000;
 	this.TIMER_SCAN_DELAY = 30000;
-	this.initialised = false;
-	this.loading = false;
-	this.scanning = false;
+	this.initialised = !1;
+	this.loading = !1;
+	this.scanning = !1;
 	this.loadingTimer = null;
 	this.map = null;
 	this.tooltipElem = null;
@@ -179,7 +17,7 @@ var App = new function () {
 	this.pokemon = [];
 	this.markers = {};
 	this.init = function (e) {
-		this.initialised = true;
+		this.initialised = !0;
 		this.latitude = e.latitude || this.latitude;
 		this.longitude = e.longitude || this.longitude;
 		this.pokedex = e.pokedex || this.pokedex;
@@ -188,8 +26,8 @@ var App = new function () {
 	this.initMap = function () {
 		var n = $('.home-map-wrapper'), o = $('.home-map-scan');
 		this.tooltipElem = $('.home-map-tooltip');
-		this.map = L.map(n.get(0), {center: {lat: this.latitude, lng: this.longitude}, zoom: 17, zoomControl: false});
-		this.map.attributionControl.setPrefix(false);
+		this.map = L.map(n.get(0), {center: {lat: this.latitude, lng: this.longitude}, zoom: 17, zoomControl: !1});
+		this.map.attributionControl.setPrefix(!1);
 		var i = L.Control.extend({
 			options: {position: 'bottomright', marginTop: 0, marginLeft: 0, marginBottom: 0, marginRight: 0}, onAdd: function () {
 				var e = L.DomUtil.create('div', 'esri-leaflet-logo');
@@ -215,8 +53,8 @@ var App = new function () {
 			window.history.replaceState(null, null, '#/@' + e.latitude + ',' + e.longitude)
 		});
 		o.on('click', function () {
-			e.findNearbyPokemon(e.latitude, e.longitude, true);
-			return false
+			e.findNearbyPokemon(e.latitude, e.longitude, !0);
+			return !1
 		}).removeAttr('disabled');
 		this.updateMarkers();
 		this.findNearbyPokemon(this.latitude, this.longitude);
@@ -239,20 +77,20 @@ var App = new function () {
 			e.loadingTimer = null
 		}
 		;
-		e.loading = true;
+		e.loading = !0;
 		if (o.is(':hidden')) {
 			o.addClass('home-map-loading-mini');
 			o.fadeIn(200)
 		}
 		;
 		if (s) {
-			e.scanning = true;
-			a.attr('disabled', true);
+			e.scanning = !0;
+			a.attr('disabled', !0);
 			a.find('strong').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>');
 			return App.request('/map/scan/' + t + '/' + n, function (i) {
-				e.loading = false;
+				e.loading = !1;
 				e.loadingTimer = setTimeout(function () {
-					e.findNearbyPokemon(t, n, false, i.jobId)
+					e.findNearbyPokemon(t, n, !1, i.jobId)
 				}, e.TIMER_JOB)
 			}, function (o) {
 				if (o.indexOf('{disabled}') > -1) {
@@ -268,10 +106,10 @@ var App = new function () {
 					i.css('display', 'inline-block')
 				}
 				;
-				e.loading = false;
+				e.loading = !1;
 				e.loadingTimer = setTimeout(function () {
-					e.scanning = false;
-					e.findNearbyPokemon(t, n, true)
+					e.scanning = !1;
+					e.findNearbyPokemon(t, n, !0)
 				}, e.TIMER_SCAN_ERROR)
 			})
 		}
@@ -281,18 +119,18 @@ var App = new function () {
 				if (s.jobStatus == 'failure' || s.jobStatus == 'unknown') {
 					i.text('Unable to scan for pokemon, retrying in ' + (e.TIMER_SCAN_ERROR / 1000) + ' seconds. If this continues to fail then the Pokemon servers are currently unstable or offline.');
 					i.css('display', 'inline-block');
-					e.loading = false;
+					e.loading = !1;
 					e.loadingTimer = setTimeout(function () {
-						e.scanning = false;
-						e.findNearbyPokemon(t, n, true)
+						e.scanning = !1;
+						e.findNearbyPokemon(t, n, !0)
 					}, e.TIMER_SCAN_ERROR)
 				}
 				else if (s.jobStatus == 'in_progress') {
 					i.text('');
 					i.hide();
-					e.loading = false;
+					e.loading = !1;
 					e.loadingTimer = setTimeout(function () {
-						e.findNearbyPokemon(t, n, false, r)
+						e.findNearbyPokemon(t, n, !1, r)
 					}, e.TIMER_JOB)
 				}
 				;
@@ -300,10 +138,10 @@ var App = new function () {
 			}
 			;
 			for (var d in s.pokemon) {
-				var l = false;
+				var l = !1;
 				for (var m in e.pokemon) {
 					if (e.pokemon[m].id == s.pokemon[d].id) {
-						l = true
+						l = !0
 					}
 				}
 				;
@@ -325,8 +163,8 @@ var App = new function () {
 				}, e.TIMER_SCAN_DELAY)
 			}
 			;
-			e.scanning = false;
-			e.loading = false;
+			e.scanning = !1;
+			e.loading = !1;
 			e.loadingTimer = null;
 			if (o.is(':visible')) {
 				o.fadeOut(200)
@@ -334,9 +172,9 @@ var App = new function () {
 		}, function (o) {
 			i.text('Unable to process response. We are aware of this issue and trying to fix. Please try to refresh the page to potentially solve issue!');
 			i.css('display', 'inline-block');
-			e.loading = false;
+			e.loading = !1;
 			e.loadingTimer = setTimeout(function () {
-				e.findNearbyPokemon(t, n, false, r)
+				e.findNearbyPokemon(t, n, !1, r)
 			}, e.TIMER_ERROR)
 		})
 	};
@@ -373,7 +211,7 @@ var App = new function () {
 			e.tooltipElem.css({top: (n.offset().top - (a.hasClass('embed-map') ? 0 : 96)) + 'px', left: n.offset().left + 'px'});
 			e.tooltipElem.removeAttr('title');
 			e.tooltipElem.attr('data-original-title', r);
-			e.tooltipElem.tooltip({trigger: 'manual', html: true}).tooltip('show')
+			e.tooltipElem.tooltip({trigger: 'manual', html: !0}).tooltip('show')
 		});
 		n.on('mouseout', function () {
 			var e = $('.tooltip');
