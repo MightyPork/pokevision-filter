@@ -10,7 +10,6 @@ console.log("Loading PokéVision Filter!");
 	// Reduce cooldown time
 	self.TIMER_SCAN_DELAY = 500;
 
-
 	var Blacklist = [
 		'Drowzee',
 		'Pidgey',
@@ -21,39 +20,51 @@ console.log("Loading PokéVision Filter!");
 		'Rattata',
 	];
 
+	/** Check if a Pokémon is blacklisted */
 	function isBlacklisted(id) {
 		return Blacklist.indexOf(pokedex[id]) != -1;
 	}
 
-	// Wraping the createMarker function in a filter
-	self.createMarkerOrig = self.createMarker;
-	self.createMarker = function (t, i) {
+	/** Start the extension */
+	function init() {
+		installFilter();
+		removeBlacklistedPokemon();
 
-		if (isBlacklisted(i.pokemonId)) {
-			// Return a harmless do-nothing stub
-			return {
-				updateLabel: function () {
-				}
-			};
-		}
+		// Remove annoying empty ad containers - because why not
+		$('.ad-unit').remove();
+	}
 
-		return self.createMarkerOrig(t, i);
-	};
+	/**
+	 * he extension is loaded after the page has already loaded some Pokemon.
+	 * Let's get rid of the hidden ones
+	 */
+	function removeBlacklistedPokemon() {
+		_.each(self.pokemon, function (entry) {
+			if (isBlacklisted(entry.pokemonId)) {
+				// mark it expired - it'll get removed in updateMarkers()
+				entry.expiration_time -= 10000;
+			}
+		});
+		self.updateMarkers();
+	}
 
+	/** Wrap the createMarker function in a filter */
+	function installFilter() {
+		self.createMarkerOrig = self.createMarker;
+		self.createMarker = function (t, i) {
 
-	// --- Init ---
-	// 1. Remove annoying empty ad containers - because why not
-	$('.ad-unit').remove();
+			if (isBlacklisted(i.pokemonId)) {
+				// Return a harmless do-nothing stub
+				return {
+					updateLabel: function () {
+					}
+				};
+			}
 
-	// 2. The extension is loaded after the page has already loaded some Pokemon.
-	// Let's get rid of the hidden ones
-	_.each(self.pokemon, function (entry) {
-		if (isBlacklisted(entry.pokemonId)) {
-			// mark it expired - it'll get removed in updateMarkers()
-			entry.expiration_time -= 10000;
-		}
-	});
+			return self.createMarkerOrig(t, i);
+		};
+	}
 
-	self.updateMarkers();
-
+	// Boot it up
+	init();
 })(window.App);
