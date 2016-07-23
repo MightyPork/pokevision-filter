@@ -1,65 +1,68 @@
 "use strict";
 
-(function (app) {
-	if (_.isUndefined(app) || $('main').hasClass('error')) {
-		console.warn('Either the site scripts changed, or it didn\'t load right.\nCannot init PokéVision Filter.');
-		return;
-	}
+var PokemonFilter = new function () {
+	var self = this;
 
-	var self = app.home;
-	var pokedex = self.pokedex;
-	var invPokedex = _.invert(self.pokedex); // for lookup by name
+	console.log(this);
+
+	var app = window.App;
+
+	var home = app.home;
+	var pokedex = home.pokedex;
+	var invPokedex = _.invert(home.pokedex); // for lookup by name
 
 	// Reduce cooldown time
-	self.TIMER_SCAN_DELAY = 500;
+	home.TIMER_SCAN_DELAY = 500;
 
-	var Blacklist = [
-		'Drowzee',
-		'Pidgey',
-		'Zubat',
-		'Spearow',
-		'Weedle',
-		'Caterpie',
-		'Rattata',
+	self.blacklist = [
+		+invPokedex['Drowzee'],
+		+invPokedex['Pidgey'],
+		+invPokedex['Rattata']
 	];
 
 	/** Check if a Pokémon is blacklisted */
-	function isBlacklisted(id) {
-		return Blacklist.indexOf(pokedex[id]) != -1;
-	}
+	this.isBlacklisted = function(id) {
+		return self.blacklist.indexOf(id) != -1;
+	};
 
 	/** Start the extension */
-	function init() {
-		installFilter();
-		removeBlacklistedPokemon();
-		createFilterPane();
+	this.init = function() {
+		if (_.isUndefined(app) || $('main').hasClass('error')) {
+			console.warn('Either the site scripts changed, or it didn\'t load right.\nCannot init PokéVision Filter.');
+			return;
+		}
+
+		self.installFilter();
+		self.removeBlacklistedPokemon();
+		self.createFilterPane();
 
 		// Remove annoying empty ad containers - because why not
 		$('.ad-unit').remove();
-	}
+
+		console.info("Initialized PokéVision Filter!");
+	};
 
 	/**
 	 * he extension is loaded after the page has already loaded some Pokemon.
 	 * Let's get rid of the hidden ones
 	 */
-	function removeBlacklistedPokemon() {
-		_.each(self.pokemon, function (entry) {
+	this.removeBlacklistedPokemon = function() {
+		_.each(home.pokemon, function (entry) {
 			if (_.isUndefined(entry)) return;
 
-			if (isBlacklisted(entry.pokemonId)) {
+			if (self.isBlacklisted(entry.pokemonId)) {
 				// mark it expired - it'll get removed in updateMarkers()
 				entry.expiration_time -= 10000;
 			}
 		});
-		self.updateMarkers();
-	}
+		home.updateMarkers();
+	};
 
 	/** Wrap the createMarker function in a filter */
-	function installFilter() {
-		self.createMarkerOrig = self.createMarker;
-		self.createMarker = function (t, i) {
-
-			if (isBlacklisted(i.pokemonId)) {
+	this.installFilter = function() {
+		home.createMarkerOrig = home.createMarker;
+		home.createMarker = function (idx, pk) {
+			if (self.isBlacklisted(pk.pokemonId)) {
 				// Return a harmless do-nothing stub
 				return {
 					updateLabel: function () {
@@ -67,11 +70,11 @@
 				};
 			}
 
-			return self.createMarkerOrig(t, i);
+			return home.createMarkerOrig(idx, pk);
 		};
-	}
+	};
 
-	function createFilterPane() {
+	this.createFilterPane = function() {
 		var sidebar = $('.home-sidebar');
 
 		var filterDiv = $('<div class="PokemonFilter"></div>');
@@ -80,15 +83,19 @@
 			var img = document.createElement('img');
 			img.src = 'https://ugc.pokevision.com/images/pokemon/' + i + '.png';
 			img.title = pokedex[i];
+			img.classList.add('x-filter-pokemon');
+
+			console.log('Adding ' + i + ' : ' + img.title);
+			if (self.isBlacklisted(i)) {
+				img.classList.add('filter-hidden');
+			}
 
 			filterDiv.append(img);
 		}
 
 		sidebar.prepend(filterDiv);
-	}
+	};
+};
 
-	// Boot it up
-	init();
-
-	console.info("Initialized PokéVision Filter!");
-})(window.App);
+// Start up
+PokemonFilter.init();

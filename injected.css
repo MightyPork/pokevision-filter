@@ -1,3 +1,13 @@
-body.home main.home-sidebar {
-	padding: 5px;
-}
+.PokemonFilter {
+  margin: -26px;
+  margin-bottom: 5px; }
+  .PokemonFilter img {
+    cursor: pointer; }
+    .PokemonFilter img:hover {
+      background: rgba(0, 0, 0, 0.1); }
+    .PokemonFilter img.filter-hidden {
+      opacity: .3; }
+      .PokemonFilter img.filter-hidden:hover {
+        opacity: .9; }
+
+/*# sourceMappingURL=injected.css.map */
