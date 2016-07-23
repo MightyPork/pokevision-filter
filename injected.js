@@ -6,8 +6,6 @@
 		return;
 	}
 
-	console.log("Loading PokéVision Filter!");
-
 	var self = app.home;
 	var pokedex = self.pokedex;
 	var invPokedex = _.invert(self.pokedex); // for lookup by name
@@ -72,4 +70,6 @@
 
 	// Boot it up
 	init();
+
+	console.info("Initialized PokéVision Filter!");
 })(window.App);
