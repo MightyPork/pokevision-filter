@@ -14,6 +14,13 @@ function scriptFromFile(file) {
 	return script;
 }
 
+function injectCss(file) {
+	var style = document.createElement("link");
+	style.rel = 'stylesheet';
+	style.href = chrome.extension.getURL(file);
+	document.head.appendChild(style);
+}
+
 /**
  * Inject script tags into the page.
  *
@@ -42,3 +49,5 @@ inject([
 	scriptFromFile('lib/lodash.min.js'), // jquery is already installed in the page
 	scriptFromFile('injected.js')
 ]);
+
+injectCss('injected.css');

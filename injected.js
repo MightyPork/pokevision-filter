@@ -32,6 +32,7 @@
 	function init() {
 		installFilter();
 		removeBlacklistedPokemon();
+		createFilterPane();
 
 		// Remove annoying empty ad containers - because why not
 		$('.ad-unit').remove();
@@ -43,6 +44,8 @@
 	 */
 	function removeBlacklistedPokemon() {
 		_.each(self.pokemon, function (entry) {
+			if (_.isUndefined(entry)) return;
+
 			if (isBlacklisted(entry.pokemonId)) {
 				// mark it expired - it'll get removed in updateMarkers()
 				entry.expiration_time -= 10000;
@@ -66,6 +69,22 @@
 
 			return self.createMarkerOrig(t, i);
 		};
+	}
+
+	function createFilterPane() {
+		var sidebar = $('.home-sidebar');
+
+		var filterDiv = $('<div class="PokemonFilter"></div>');
+
+		for (var i = 1; i < 150; i++) {
+			var img = document.createElement('img');
+			img.src = 'https://ugc.pokevision.com/images/pokemon/' + i + '.png';
+			img.title = pokedex[i];
+
+			filterDiv.append(img);
+		}
+
+		sidebar.prepend(filterDiv);
 	}
 
 	// Boot it up

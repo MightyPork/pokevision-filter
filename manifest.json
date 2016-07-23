@@ -21,7 +21,8 @@
 	],
 	"web_accessible_resources": [
 		"injected.js",
-		"lib/lodash.min.js"
+		"lib/lodash.min.js",
+		"injected.css"
 	],
 	"description": "PokéVision Filter",
 	"manifest_version": 2,
