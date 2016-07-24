@@ -151,14 +151,15 @@ var PokemonFilter = new function () {
 	this.applyBlacklist = function () {
 		self.debug && console.log('[filter] Removing hidden Pokémon from the map.');
 
-		_.each(home.pokemon, function (entry) {
+		/*_.each(home.pokemon, function (entry) {
 			if (_.isUndefined(entry)) return;
 
 			if (self.isBlacklisted(entry.pokemonId)) {
 				// mark it expired - it'll get removed in updateMarkers()
 				entry.expiration_time -= 10000;
 			}
-		});
+		});*/
+		home.filters = self.getWhiteList();
 		home.updateMarkers();
 	};
 
@@ -405,7 +406,6 @@ var PokemonFilter = new function () {
 		$('#spec-cancel-spec').on('click', function () {
 			self.toggleSpecView();
 			if(specsEdited){
-				self.replaceBlacklist([]);
 				self.rollBackSpecs();
 				specsEdited = false;
 				self.errorBubble('Nothing changed. Previous spec-settings restored.', 'CANCELED')
@@ -491,6 +491,20 @@ var PokemonFilter = new function () {
 
 		var toggleMenu = document.getElementById("spec-filters-box");
 		toggleMenu.style.display = toggleMenu.style.display === 'none' ? '' : 'none';
+	}
+
+	this.getWhiteList = function(){
+		var whiteList = [];
+		for(var i = 1; i <= TOTAL_POKEMON_COUNT; i++){
+			if(!self.blacklist.includes(i)){
+				whiteList.push(i);
+			}
+		}
+		if(whiteList.length == 0){
+			return [undefined];
+		}else{
+			return whiteList;
+		}
 	}
 
 };
