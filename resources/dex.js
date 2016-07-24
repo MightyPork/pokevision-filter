@@ -1,4 +1,35 @@
 {
+  "rarities" :
+          [
+            "common",
+            "uncommon",
+            "rare",
+            "very rare",
+            "epic",
+            "legendary",
+            "mythic"
+          ],
+
+  "pokeTypes" :
+          [
+            "grass",
+            "fire",
+            "water",
+            "normal",
+            "poison",
+            "flying",
+            "bug",
+            "ghost",
+            "fighting",
+            "rock",
+            "ground",
+            "electric",
+            "psychic",
+            "dragon",
+            "steel",
+            "ice"
+          ],
+
   "fullDex" :
   [
     {
