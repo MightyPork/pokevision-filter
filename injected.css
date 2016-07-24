@@ -9,20 +9,32 @@
       opacity: .3; }
       .PokemonFilter img.filter-hidden:hover {
         opacity: .7; }
-  .PokemonFilter > .toggles {
+  .PokemonFilter .pf-box {
     display: flex;
     justify-content: flex-end;
-    align-items: center; }
-    .PokemonFilter > .toggles > * {
+    align-items: center;
+    margin-bottom: 3px; }
+    .PokemonFilter .pf-box.left {
+      justify-content: flex-start; }
+    .PokemonFilter .pf-box > * {
       display: inline-block;
+      vertical-align: center; }
+    .PokemonFilter .pf-box .pf-title {
       padding: 0 6px;
       font-size: 110%;
-      vertical-align: center; }
-    .PokemonFilter > .toggles .label {
+      line-height: 1.6em;
       margin-right: auto;
       color: #222;
-      font-weight: bold; }
-    .PokemonFilter > .toggles a {
+      font-weight: bold;
+      margin-bottom: 0;
+      cursor: pointer; }
+    .PokemonFilter .pf-box input[type=checkbox] {
+      margin: 5px;
+      margin-right: 0; }
+    .PokemonFilter .pf-box a.pf-toggle {
+      padding: 0 6px;
+      font-size: 110%;
+      line-height: 1.6em;
       cursor: pointer;
       display: inline-block;
       text-decoration: none;
@@ -31,8 +43,27 @@
       margin: 5px;
       border-radius: 3px;
       background: rgba(0, 0, 0, 0.1); }
-      .PokemonFilter > .toggles a:hover {
+      .PokemonFilter .pf-box a.pf-toggle:last-child {
+        margin-right: 0; }
+      .PokemonFilter .pf-box a.pf-toggle:hover {
         background: #259EFF;
+        color: white; }
+    .PokemonFilter .pf-box a.pf-slot {
+      width: 1.4em;
+      height: 1.4em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 3px;
+      margin: 0 3px;
+      text-decoration: none;
+      background: rgba(189, 55, 54, 0.3);
+      color: black; }
+      .PokemonFilter .pf-box a.pf-slot:last-child {
+        margin-right: 0; }
+      .PokemonFilter .pf-box a.pf-slot.active, .PokemonFilter .pf-box a.pf-slot:hover {
+        background: rgba(189, 55, 54, 0.8);
         color: white; }
 
 /*# sourceMappingURL=injected.css.map */

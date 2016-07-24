@@ -17,25 +17,43 @@
 		}
 	}
 
-	> .toggles {
+	.pf-box {
 		display: flex;
 		justify-content: flex-end;
 		align-items: center;
+		margin-bottom: 3px;
+
+		&.left {
+			justify-content: flex-start;
+		}
 
 		> * {
 			display: inline-block;
-			padding: 0 6px;
-			font-size: 110%;
 			vertical-align: center;
 		}
 
-		.label {
+		.pf-title {
+			padding: 0 6px;
+			font-size: 110%;
+			line-height: 1.6em;
+
 			margin-right: auto;
 			color: #222;
 			font-weight: bold;
+			margin-bottom: 0;
+			cursor: pointer
 		}
 
-		a {
+		input[type=checkbox] {
+			margin: 5px;
+			margin-right: 0;
+		}
+
+		a.pf-toggle {
+			padding: 0 6px;
+			font-size: 110%;
+			line-height: 1.6em;
+
 			cursor: pointer;
 			display: inline-block;
 			text-decoration: none;
@@ -44,9 +62,39 @@
 			margin: 5px;
 			border-radius: 3px;
 
+			&:last-child {
+				margin-right: 0;
+			}
+
 			background: rgba(black, .1);
 			&:hover {
 				background: #259EFF;
+				color: white;
+			}
+		}
+
+		a.pf-slot {
+			width: 1.4em;
+			height: 1.4em;
+			cursor: pointer;
+
+			display: flex;
+			align-items: center;
+			justify-content: center;
+
+			border-radius: 3px;
+			margin: 0 3px;
+			text-decoration: none;
+
+			&:last-child {
+				margin-right: 0;
+			}
+
+			background: rgba(#bd3736, .3);
+			color: black;
+
+			&.active, &:hover {
+				background: rgba(#bd3736, .8);
 				color: white;
 			}
 		}
