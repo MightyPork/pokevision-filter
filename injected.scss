@@ -17,6 +17,18 @@
 		}
 	}
 
+	.pf-title {
+		padding: 0 6px;
+		font-size: 110%;
+		line-height: 1.6em;
+
+		margin-right: auto;
+		color: #222;
+		font-weight: bold;
+		margin-bottom: 0;
+		cursor: pointer
+	}
+
 	.pf-box {
 		display: flex;
 		justify-content: flex-end;
@@ -121,4 +133,13 @@
 			}
 		}
 	}
+	div.spec-check-element {
+		padding: 0 6px;
+		line-height: 1.6em;
+		display: inline-table;
+		color: #222;
+		font-weight: bold;
+		margin-bottom: 0;
+	}
+
 }

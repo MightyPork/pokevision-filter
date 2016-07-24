@@ -9,6 +9,13 @@ var PokemonFilter = new function () {
 	var pokedex = home.pokedex;
 	var invPokedex = _.invert(home.pokedex); // for lookup by name
 
+	var pokeTypes = window.dexData.pokeTypes;
+	var pokeRarities = window.dexData.rarities;
+	var pokeData = window.dexData.fullDex;
+
+	var specsEdited = false;
+	var previousSpecs;
+
 	// Pokemon that can't be caught - don't show buttons for them
 	var UNOBTAINABLES = [
 		+invPokedex['Mew'],
@@ -42,6 +49,8 @@ var PokemonFilter = new function () {
 		self.buildUserInterface();
 
 		console.info("[filter] Filter ready, good hunting!");
+		var crapFilter = document.querySelector('.btn-group.bootstrap-select.show-tick.form-control');
+		crapFilter.style.display = 'none';
 	};
 
 	/** Show a success bubble (green) */
@@ -258,15 +267,42 @@ var PokemonFilter = new function () {
 			toggleBox.append('<a class="pf-slot" id="pf-slot-'+i+'" data-n="'+i+'">'+(i+1)+'</a>');
 		}
 		filterDiv.append(toggleBox);
-
 		// Box with save slots
-		var slotBox = $('<div class="pf-box left">' +
+
+		var slotBox = $('<div class="pf-box left" id="initial-buttons">' +
 			'<a class="pf-toggle" id="pf-show-all">Show all</a>' +
 			'<a class="pf-toggle" id="pf-hide-all">Hide all</a>' +
+			'<a class="pf-toggle" id="pf-spec-filter-menu">Specific Filters</a>' +
 			'</div>');
 		filterDiv.append(slotBox);
 
+
+		// Box for setting specific filters
+		var specFiltersBox = $('<div class="pf-specFilters" id="spec-filters-box" style="display: none"></div>');
+		//adding type-checkboxes
+		specFiltersBox.append('<label class="pf-title pf-box left">Types</label>');
+		for(var t = 0; t < pokeTypes.length; t++){
+			specFiltersBox.append('<div class="spec-check-element"><input type="checkbox" poketype="' + pokeTypes[t] + '" id="spec-toggle-' + pokeTypes[t] + '" class="spec-checkBox pokeType">' + '<label' +
+				' class="pf-title"' +
+				' for="spec-toggle-' + pokeTypes[t] + '">' + pokeTypes[t] + '</label></div>');
+		}
+		//adding rarity-checkboxes
+		specFiltersBox.append('<label class="pf-title pf-box left" >Rarities</label>');
+		for(var r = 0; r < pokeRarities.length; r++){
+			specFiltersBox.append('<div class="spec-check-element"><input type="checkbox" pokerarity="' + pokeRarities[r] + '" id="spec-toggle-' + pokeRarities[r] + '" class="spec-checkBox pokeRarity">' + '<label' +
+				' class="pf-title"' +
+				' for="spec-toggle-' + pokeRarities[r] + '">' + pokeRarities[r] + '</label></div>');
+		}
+		var buttonsBox = $('<div class="pf-box left">' +
+			'<a class="pf-toggle" id="spec-cancel-spec">CANCEL</a>' +
+			'<a class="pf-toggle" id="spec-apply-spec">REPLACE LIST</a>' +
+			'</div>');
+		specFiltersBox.append(buttonsBox);
+		filterDiv.append(specFiltersBox);
+
+
 		// Box with the pokémon images
+		var pokemonBox = $('<div id="pf-pokeBox"></div>');
 		for (var id = 1; id < TOTAL_POKEMON_COUNT + 1; id++) {
 			if (UNOBTAINABLES.indexOf(id) != -1) continue;
 
@@ -280,9 +316,9 @@ var PokemonFilter = new function () {
 			if (self.isBlacklisted(id)) {
 				img.classList.add('filter-hidden');
 			}
-
-			filterDiv.append(img);
+			pokemonBox.append(img);
 		}
+		filterDiv.append(pokemonBox);
 
 		// Bubbles & debug checkboxes
 		filterDiv.append($('<div class="pf-box filter-settings left first">' +
@@ -340,20 +376,123 @@ var PokemonFilter = new function () {
 
 		// Toggle pokémon on click
 		$('.x-filter-pokemon').on('click', function () {
+			self.resetSpecCheckBoxes();
 			self.togglePokemon(this.dataset.id); // also applies and saves
 		});
 
 		// Hide & show buttons
 		$('#pf-hide-all').on('click', function () {
 			self.replaceBlacklist(_.range(1, TOTAL_POKEMON_COUNT+1));
+			self.resetSpecCheckBoxes();
 			self.successBubble('Enable the ones you want, then click the map or refresh the page.', 'All species hidden.')
 		});
 
 		$('#pf-show-all').on('click', function () {
 			self.replaceBlacklist([]);
+			self.setSpecCheckBoxes();
 			self.successBubble('Refresh the page or click the map to load them.', 'All species visible.')
 		});
+
+		$('#pf-spec-filter-menu').on('click', function () {
+			self.toggleSpecView();
+			previousSpecs = [];
+			var checkBoxesToSave = document.querySelectorAll('.spec-checkBox');
+			[].forEach.call(checkBoxesToSave, function(box){
+				previousSpecs[box.id] = box.checked;
+			});
+		});
+
+		$('#spec-cancel-spec').on('click', function () {
+			self.toggleSpecView();
+			if(specsEdited){
+				self.replaceBlacklist([]);
+				self.rollBackSpecs();
+				specsEdited = false;
+				self.errorBubble('Nothing changed. Previous spec-settings restored.', 'CANCELED')
+			}
+		});
+
+		$('#spec-apply-spec').on('click', function () {
+			self.applySpecFilters();
+			self.toggleSpecView();
+			self.successBubble('Your chosen filters have replaced previous list. Now showing as you chose to filter.', 'Filters' +
+				' applied!')
+		});
+
+		$('.spec-checkBox').on('click', function () {
+			specsEdited = true;
+		});
 	};
+
+	this.applySpecFilters = function(){
+		var typesFilter = [];
+		var rarityFilter = [];
+		var idsToHide = [];
+
+		var typeBoxes = document.querySelectorAll(".spec-checkBox.pokeType");
+		[].forEach.call(typeBoxes, function(box){
+			if(box.checked){
+				typesFilter.push(box.getAttribute('poketype'));
+			}
+		});
+		if(typesFilter.isEmpty){
+			typesFilter = pokeTypes;
+		}
+
+		var rarityBoxes = document.querySelectorAll(".spec-checkBox.pokeRarity");
+		[].forEach.call(rarityBoxes, function(box){
+			if(box.checked){
+				rarityFilter.push(box.getAttribute('pokerarity'));
+			}
+		});
+		if(rarityFilter.isEmpty){
+			rarityFilter = pokeRarities;
+		}
+
+		[].forEach.call(pokeData, function(entry){
+			if(!rarityFilter.includes(entry.rarity) && !(typesFilter.includes(entry.type1) || typesFilter.includes(entry.type2))){
+				idsToHide.push(entry.dexNo)
+			}
+		});
+		if(idsToHide.isEmpty){
+			self.replaceBlacklist([]);
+		}else{
+			self.replaceBlacklist(idsToHide);
+		}
+	}
+
+	this.resetSpecCheckBoxes = function(){
+		var specBoxes = document.querySelectorAll(".spec-checkBox");
+		[].forEach.call(specBoxes, function(box) {
+			box.checked = false;
+		});
+	}
+
+	this.setSpecCheckBoxes = function(){
+		var specBoxes = document.querySelectorAll(".spec-checkBox");
+		[].forEach.call(specBoxes, function(box) {
+			box.checked = true;
+		});
+	}
+
+	this.rollBackSpecs = function(){
+		var checkBoxesToRestore = document.querySelectorAll('.spec-checkBox');
+		[].forEach.call(checkBoxesToRestore, function(box){
+			box.checked = previousSpecs[box.id];
+		});
+	}
+
+	this.toggleSpecView = function(){
+		var toggleButtons = document.getElementById("initial-buttons");
+		toggleButtons.style.display = toggleButtons.style.display === 'none' ? '' : 'none';
+
+		var togglePokeBox = document.getElementById("pf-pokeBox");
+		togglePokeBox.style.display = togglePokeBox.style.display === 'none' ? '' : 'none';
+
+		var toggleMenu = document.getElementById("spec-filters-box");
+		toggleMenu.style.display = toggleMenu.style.display === 'none' ? '' : 'none';
+	}
+
 };
 
 // Start up

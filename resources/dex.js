@@ -1,4 +1,4 @@
-{
+var dexData = {
   "rarities" :
           [
             "common",
@@ -27,7 +27,8 @@
             "psychic",
             "dragon",
             "steel",
-            "ice"
+            "ice",
+            "fairy"
           ],
 
   "fullDex" :
@@ -994,7 +995,7 @@
     {
       "dexNo": 138,
       "name": "Omanyte",
-      "rarity": "",
+      "rarity": "rare",
       "type1": "rock",
       "type2": "water"
     },
@@ -1008,7 +1009,7 @@
     {
       "dexNo": 140,
       "name": "Kabuto",
-      "rarity": "",
+      "rarity": "rare",
       "type1": "rock",
       "type2": "water"
     },
