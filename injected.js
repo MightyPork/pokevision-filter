@@ -295,7 +295,7 @@ var PokemonFilter = new function () {
 			'<label for="pf-debug">Debug logging</label>' +
 			'</div>'));
 
-		// Preset toggles
+		// Selecting pages
 		$('#pf-slot-'+self.preset_n).addClass('active');
 		$('.pf-slot').on('click', function () {
 			$('.pf-slot').removeClass('active');
@@ -304,7 +304,7 @@ var PokemonFilter = new function () {
 			self.selectBlacklistPage(n);
 		});
 
-		// Enable/disable toggle
+		// Enable checkbox
 		$('#pf-enable').attr('checked', self.enabled).on('change', function() {
 			self.enabled = $(this).is(':checked');
 			self.applyBlacklist();
@@ -317,7 +317,7 @@ var PokemonFilter = new function () {
 			}
 		});
 
-		// Toggle bubbles
+		// Bubbles checkbox
 		$('#pf-bubbles').attr('checked', self.enabled).on('change', function() {
 			self.bubbles = $(this).is(':checked');
 			self.persistConfig();
@@ -326,7 +326,7 @@ var PokemonFilter = new function () {
 			self.successBubble(null, 'Filter info bubbles enabled');
 		});
 
-		// Toggle debug
+		// Debug checkbox
 		$('#pf-debug').attr('checked', self.debug).on('change', function() {
 			self.debug = $(this).is(':checked');
 			self.persistConfig();
