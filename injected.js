@@ -82,6 +82,14 @@ var PokemonFilter = new function () {
 	};
 
 	this.persistConfig = function () {
+		// Remove nulls
+		for (var i = 0; i < self.blacklists.length; i++) {
+			self.blacklists[i] = _.filter(self.blacklists[i], function(x) {return !_.isUndefined(x) && !_.isNull(x)});
+		}
+
+		// Fix broken reference
+		self.blacklist = self.blacklists[self.preset_n];
+
 		var config = {
 			enabled: self.enabled,
 			blacklists: self.blacklists,
