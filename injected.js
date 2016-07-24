@@ -28,6 +28,23 @@ var PokemonFilter = new function () {
 	// This will be a pointer to the active blacklist save slot
 	self.blacklist = [];
 
+	/** Start the extension */
+	this.init = function () {
+		if (_.isUndefined(app) || $('main').hasClass('error')) {
+			console.warn('[filter] Either the site scripts changed, or it didn\'t load right.\nCannot init PokéVision Filter.');
+			return;
+		}
+
+		self.loadConfig();
+
+		self.installFilter();
+		self.applyBlacklist();
+		self.buildUserInterface();
+
+		console.info("[filter] Filter ready, good hunting!");
+	};
+
+	/** Show a success bubble (green) */
 	this.successBubble = function(text, heading) {
 		self.debug && console.log('[filter] ' + heading + ' ' + text);
 
@@ -36,6 +53,7 @@ var PokemonFilter = new function () {
 		app.success(text, heading);
 	};
 
+	/** Show an error bubble (red) */
 	this.errorBubble = function(text, heading) {
 		self.debug && console.log('[filter] ' + heading, ' ' + text);
 
@@ -44,6 +62,10 @@ var PokemonFilter = new function () {
 		app.error(text, heading);
 	};
 
+	/**
+	 * Load settings from localStorage
+	 * TODO use Chrome sync instead
+	 */
 	this.loadConfig = function () {
 		var configStr = localStorage.getItem('pokemon_filter');
 
@@ -81,6 +103,10 @@ var PokemonFilter = new function () {
 		self.debug && console.log("[filter] Config loaded: ", config);
 	};
 
+	/**
+	 * Store current settings to localStorage
+	 * TODO use Chrome sync instead
+	 */
 	this.persistConfig = function () {
 		// Remove nulls
 		for (var i = 0; i < self.blacklists.length; i++) {
@@ -110,25 +136,8 @@ var PokemonFilter = new function () {
 		return self.enabled && (self.blacklist.indexOf(+id) != -1);
 	};
 
-	/** Start the extension */
-	this.init = function () {
-		if (_.isUndefined(app) || $('main').hasClass('error')) {
-			console.warn('[filter] Either the site scripts changed, or it didn\'t load right.\nCannot init PokéVision Filter.');
-			return;
-		}
-
-		self.loadConfig();
-
-		self.installFilter();
-		self.applyBlacklist();
-		self.createFilterPane();
-
-		console.info("[filter] Filter ready, good hunt!");
-	};
-
 	/**
-	 * he extension is loaded after the page has already loaded some Pokemon.
-	 * Let's get rid of the hidden ones
+	 * Remove pokemon already drawn on the map that match the current blacklist.
 	 */
 	this.applyBlacklist = function () {
 		self.debug && console.log('[filter] Removing hidden Pokémon from the map.');
@@ -144,8 +153,10 @@ var PokemonFilter = new function () {
 		home.updateMarkers();
 	};
 
-	/** Select a save slot to use */
-	this.selectActivePreset = function(n) {
+	/**
+	 * Select a blacklist number (preset_n)
+	 */
+	this.selectBlacklistPage = function(n) {
 		if (n < 0 || n >= self.blacklists.length) {
 			console.errorBubble("[filter] Invalid slot number:", n);
 			return;
@@ -156,15 +167,20 @@ var PokemonFilter = new function () {
 
 		self.debug && console.log("[filter] Selected preset slot", n);
 
-		$('.x-filter-pokemon').each(function(n, elem) {
-			var id = $(elem).data('id');
-			$(elem).toggleClass('filter-hidden', self.isBlacklisted(id));
-		});
+		self.updateFilterVisuals();
 
 		self.persistConfig();
 		self.applyBlacklist();
 
 		self.successBubble('Click the map or refresh the page for it to have effect.', 'Filter preset changed');
+	};
+
+	/** Mark hidden / visible Pokémon in the filter panel. */
+	this.updateFilterVisuals = function () {
+		$('.x-filter-pokemon').each(function(n, elem) {
+			var id = $(elem).data('id');
+			$(elem).toggleClass('filter-hidden', self.isBlacklisted(id));
+		});
 	};
 
 	/** Wrap the createMarker function in a filter */
@@ -177,6 +193,7 @@ var PokemonFilter = new function () {
 				// Return a harmless do-nothing stub
 				return {
 					updateLabel: function () {
+						// no-op
 					}
 				};
 			}
@@ -185,6 +202,17 @@ var PokemonFilter = new function () {
 		};
 	};
 
+	/** Replace the current blacklist page with the given IDs */
+	this.replaceBlacklist = function(newIds) {
+		self.blacklists[self.preset_n] = newIds;
+		self.blacklist = self.blacklists[self.preset_n]; // Fix reference
+
+		self.updateFilterVisuals();
+		self.applyBlacklist();
+		self.persistConfig();
+	};
+
+	/** Toggle a single Pokémon in the blacklist */
 	this.togglePokemon = function (id, state) {
 		id = +id; // cast
 
@@ -212,12 +240,14 @@ var PokemonFilter = new function () {
 		self.persistConfig();
 	};
 
-	this.createFilterPane = function () {
+	/** Build the filter UI */
+	this.buildUserInterface = function () {
 		self.debug && console.log("[filter] Building user interface...");
 
 		var sidebar = $('.home-sidebar');
 
 		var filterDiv = $('<div class="PokemonFilter"></div>');
+		sidebar.prepend(filterDiv);
 
 		// Top row with toggle buttons
 		var toggleBox = $('<div class="pf-box">' +
@@ -254,10 +284,7 @@ var PokemonFilter = new function () {
 			filterDiv.append(img);
 		}
 
-		sidebar.prepend(filterDiv);
-
-		// Checkbox for toggles
-
+		// Bubbles & debug checkboxes
 		filterDiv.append($('<div class="pf-box filter-settings left first">' +
 			'<input type="checkbox" id="pf-bubbles">' +
 			'<label for="pf-bubbles">Info bubbles for filter actions</label>' +
@@ -274,7 +301,7 @@ var PokemonFilter = new function () {
 			$('.pf-slot').removeClass('active');
 			$(this).addClass('active');
 			var n = $(this).data('n');
-			self.selectActivePreset(n);
+			self.selectBlacklistPage(n);
 		});
 
 		// Enable/disable toggle
@@ -318,25 +345,12 @@ var PokemonFilter = new function () {
 
 		// Hide & show buttons
 		$('#pf-hide-all').on('click', function () {
-			$('.x-filter-pokemon').addClass('filter-hidden');
-			self.blacklist.length = 0;
-
-			for (var i = 1; i < TOTAL_POKEMON_COUNT+1; i++) {
-				self.blacklist.push(i);
-			}
-
-			self.applyBlacklist();
-			self.persistConfig();
-
+			self.replaceBlacklist(_.range(1, TOTAL_POKEMON_COUNT+1));
 			self.successBubble('Enable the ones you want, then click the map or refresh the page.', 'All species hidden.')
 		});
 
 		$('#pf-show-all').on('click', function () {
-			$('.x-filter-pokemon').removeClass('filter-hidden');
-			self.blacklist.length = 0;
-			self.applyBlacklist();
-			self.persistConfig();
-
+			self.replaceBlacklist([]);
 			self.successBubble('Refresh the page or click the map to load them.', 'All species visible.')
 		});
 	};
