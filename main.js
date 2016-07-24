@@ -47,6 +47,7 @@ function inject(scripts) {
 // Booting up!
 inject([
 	scriptFromFile('lib/lodash.min.js'), // jquery is already installed in the page
+	scriptFromFile('resources/dex.js'),
 	scriptFromFile('injected.js')
 ]);
 

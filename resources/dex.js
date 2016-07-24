@@ -1,4 +1,36 @@
-{
+var dexData = {
+  "rarities" :
+          [
+            "common",
+            "uncommon",
+            "rare",
+            "very rare",
+            "epic",
+            "legendary",
+            "mythic"
+          ],
+
+  "pokeTypes" :
+          [
+            "grass",
+            "fire",
+            "water",
+            "normal",
+            "poison",
+            "flying",
+            "bug",
+            "ghost",
+            "fighting",
+            "rock",
+            "ground",
+            "electric",
+            "psychic",
+            "dragon",
+            "steel",
+            "ice",
+            "fairy"
+          ],
+
   "fullDex" :
   [
     {
@@ -963,7 +995,7 @@
     {
       "dexNo": 138,
       "name": "Omanyte",
-      "rarity": "",
+      "rarity": "rare",
       "type1": "rock",
       "type2": "water"
     },
@@ -977,7 +1009,7 @@
     {
       "dexNo": 140,
       "name": "Kabuto",
-      "rarity": "",
+      "rarity": "rare",
       "type1": "rock",
       "type2": "water"
     },

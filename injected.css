@@ -9,6 +9,15 @@
       opacity: .3; }
       .PokemonFilter img.filter-hidden:hover {
         opacity: .7; }
+  .PokemonFilter .pf-title {
+    padding: 0 6px;
+    font-size: 110%;
+    line-height: 1.6em;
+    margin-right: auto;
+    color: #222;
+    font-weight: bold;
+    margin-bottom: 0;
+    cursor: pointer; }
   .PokemonFilter .pf-box {
     display: flex;
     justify-content: flex-end;
@@ -79,5 +88,12 @@
       .PokemonFilter .pf-box a.pf-slot.active, .PokemonFilter .pf-box a.pf-slot:hover {
         background: rgba(189, 55, 54, 0.8);
         color: white; }
+  .PokemonFilter div.spec-check-element {
+    padding: 0 6px;
+    line-height: 1.6em;
+    display: inline-table;
+    color: #222;
+    font-weight: bold;
+    margin-bottom: 0; }
 
 /*# sourceMappingURL=injected.css.map */

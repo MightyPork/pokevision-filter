@@ -18,6 +18,7 @@
 		"storage"
 	],
 	"web_accessible_resources": [
+		"resources/dex.js",
 		"injected.js",
 		"lib/lodash.min.js",
 		"injected.css"
