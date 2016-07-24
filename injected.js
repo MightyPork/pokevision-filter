@@ -3,9 +3,6 @@
 var PokemonFilter = new function () {
 	var self = this;
 
-	self.DEBUG = false;
-	self.BUBBLES = false;
-
 	var app = window.App;
 
 	var home = app.home;
@@ -22,12 +19,30 @@ var PokemonFilter = new function () {
 
 	//region Config
 
+	self.debug = false;
+	self.bubbles = false;
 	self.enabled = true;
 	self.blacklists = [];
 	self.preset_n = 0;
 
 	// This will be a pointer to the active blacklist save slot
 	self.blacklist = [];
+
+	this.successBubble = function(text, heading) {
+		self.debug && console.log('[filter] ' + heading + ' ' + text);
+
+		if (!self.bubbles) return;
+		toastr.remove();
+		app.success(text, heading);
+	};
+
+	this.errorBubble = function(text, heading) {
+		self.debug && console.log('[filter] ' + heading, ' ' + text);
+
+		if (!self.bubbles) return;
+		toastr.remove();
+		app.error(text, heading);
+	};
 
 	this.loadConfig = function () {
 		var configStr = localStorage.getItem('pokemon_filter');
@@ -36,18 +51,18 @@ var PokemonFilter = new function () {
 		var config = {
 			enabled: true,
 			blacklists: [[], [], [], [], []],
-			preset_n: 0
+			preset_n: 0,
+			bubbles: true,
+			debug: false
 		};
 
 		if (configStr) {
 			try {
 				config = JSON.parse(configStr);
 			} catch (e) {
-				console.warn("PokemonFilter config corrupted, cleaning up.");
+				console.warn("[filter] PokemonFilter config corrupted, cleaning up.");
 			}
 		}
-
-		console.log(config);
 
 		// Load the config
 		self.blacklists = config.blacklists;
@@ -57,24 +72,27 @@ var PokemonFilter = new function () {
 
 		self.preset_n = config.preset_n || 0;
 		self.enabled = !!config.enabled;
+		self.bubbles = !!config.bubbles;
+		self.debug = !!config.debug;
 
 		// 'Open the slot'
 		self.blacklist = self.blacklists[self.preset_n];
 
-		console.log("Filter config loaded:\n\t" +
-			"enabled = ", self.enabled,
-			"\n\tblacklists = ", self.blacklists,
-			"\n\tpreset_n = ", self.preset_n);
+		self.debug && console.log("[filter] Config loaded: ", config);
 	};
 
 	this.persistConfig = function () {
 		var config = {
 			enabled: self.enabled,
 			blacklists: self.blacklists,
-			preset_n: self.preset_n
+			preset_n: self.preset_n,
+			bubbles: self.bubbles,
+			debug: self.debug
 		};
 
 		localStorage.setItem('pokemon_filter', JSON.stringify(config));
+
+		self.debug && console.log("[filter] Saved config.");
 	};
 
 	//endregion
@@ -87,7 +105,7 @@ var PokemonFilter = new function () {
 	/** Start the extension */
 	this.init = function () {
 		if (_.isUndefined(app) || $('main').hasClass('error')) {
-			console.warn('Either the site scripts changed, or it didn\'t load right.\nCannot init PokéVision Filter.');
+			console.warn('[filter] Either the site scripts changed, or it didn\'t load right.\nCannot init PokéVision Filter.');
 			return;
 		}
 
@@ -97,7 +115,7 @@ var PokemonFilter = new function () {
 		self.applyBlacklist();
 		self.createFilterPane();
 
-		console.info("Initialized PokéVision Filter!");
+		console.info("[filter] Filter ready, good hunt!");
 	};
 
 	/**
@@ -105,11 +123,12 @@ var PokemonFilter = new function () {
 	 * Let's get rid of the hidden ones
 	 */
 	this.applyBlacklist = function () {
+		self.debug && console.log('[filter] Removing hidden Pokémon from the map.');
+
 		_.each(home.pokemon, function (entry) {
 			if (_.isUndefined(entry)) return;
 
 			if (self.isBlacklisted(entry.pokemonId)) {
-				self.DEBUG && console.log('Removing ' + pokedex[entry.pokemonId]);
 				// mark it expired - it'll get removed in updateMarkers()
 				entry.expiration_time -= 10000;
 			}
@@ -120,12 +139,14 @@ var PokemonFilter = new function () {
 	/** Select a save slot to use */
 	this.selectActivePreset = function(n) {
 		if (n < 0 || n >= self.blacklists.length) {
-			console.error("Invalid slot number: ", n);
+			console.errorBubble("[filter] Invalid slot number:", n);
 			return;
 		}
 
 		self.blacklist = self.blacklists[n];
 		self.preset_n = n;
+
+		self.debug && console.log("[filter] Selected preset slot", n);
 
 		$('.x-filter-pokemon').each(function(n, elem) {
 			var id = $(elem).data('id');
@@ -135,15 +156,16 @@ var PokemonFilter = new function () {
 		self.persistConfig();
 		self.applyBlacklist();
 
-		self.BUBBLES && app.success('Click the map or refresh the page for it to have effect.', 'Filter preset changed')
+		self.successBubble('Click the map or refresh the page for it to have effect.', 'Filter preset changed');
 	};
 
 	/** Wrap the createMarker function in a filter */
 	this.installFilter = function () {
+		self.debug && console.log("[filter] Installing Pokémon filter...");
+
 		home.createMarkerOrig = home.createMarker;
 		home.createMarker = function (idx, pk) {
 			if (self.isBlacklisted(pk.pokemonId)) {
-				self.DEBUG && console.log('Skipping ' + pokedex[pk.pokemonId]);
 				// Return a harmless do-nothing stub
 				return {
 					updateLabel: function () {
@@ -158,7 +180,7 @@ var PokemonFilter = new function () {
 	this.togglePokemon = function (id, state) {
 		id = +id; // cast
 
-		self.DEBUG && console.log('Toggling pokemon: ', id);
+		self.debug && console.log('[filter] Toggling pokemon:', id, '(' + pokedex[id] + ')');
 
 		var wantShow = self.isBlacklisted(id);
 
@@ -183,6 +205,8 @@ var PokemonFilter = new function () {
 	};
 
 	this.createFilterPane = function () {
+		self.debug && console.log("[filter] Building user interface...");
+
 		var sidebar = $('.home-sidebar');
 
 		var filterDiv = $('<div class="PokemonFilter"></div>');
@@ -199,8 +223,8 @@ var PokemonFilter = new function () {
 
 		// Box with save slots
 		var slotBox = $('<div class="pf-box left">' +
-			'<a class="pf-toggle" id="pf-hide-all">Hide all</a>' +
 			'<a class="pf-toggle" id="pf-show-all">Show all</a>' +
+			'<a class="pf-toggle" id="pf-hide-all">Hide all</a>' +
 			'</div>');
 		filterDiv.append(slotBox);
 
@@ -224,6 +248,18 @@ var PokemonFilter = new function () {
 
 		sidebar.prepend(filterDiv);
 
+		// Checkbox for toggles
+
+		filterDiv.append($('<div class="pf-box filter-settings left first">' +
+			'<input type="checkbox" id="pf-bubbles">' +
+			'<label for="pf-bubbles">Info bubbles for filter actions</label>' +
+			'</div>'));
+
+		filterDiv.append($('<div class="pf-box filter-settings left last">' +
+			'<input type="checkbox" id="pf-debug">' +
+			'<label for="pf-debug">Debug logging</label>' +
+			'</div>'));
+
 		// Preset toggles
 		$('#pf-slot-'+self.preset_n).addClass('active');
 		$('.pf-slot').on('click', function () {
@@ -236,9 +272,35 @@ var PokemonFilter = new function () {
 		// Enable/disable toggle
 		$('#pf-enable').attr('checked', self.enabled).on('change', function() {
 			self.enabled = $(this).is(':checked');
-			console.log('Filter enabled = ', self.enabled);
 			self.applyBlacklist();
 			self.persistConfig();
+
+			if (self.enabled) {
+				self.successBubble(null, 'Filter enabled');
+			} else {
+				self.errorBubble(null, 'Filter disabled');
+			}
+		});
+
+		// Toggle bubbles
+		$('#pf-bubbles').attr('checked', self.enabled).on('change', function() {
+			self.bubbles = $(this).is(':checked');
+			self.persistConfig();
+
+			toastr.remove();
+			self.successBubble(null, 'Filter info bubbles enabled');
+		});
+
+		// Toggle debug
+		$('#pf-debug').attr('checked', self.debug).on('change', function() {
+			self.debug = $(this).is(':checked');
+			self.persistConfig();
+
+			if (self.debug) {
+				self.successBubble(null, 'Filter debug enabled');
+			} else {
+				self.errorBubble(null, 'Filter debug disabled');
+			}
 		});
 
 		// Toggle pokémon on click
@@ -258,7 +320,7 @@ var PokemonFilter = new function () {
 			self.applyBlacklist();
 			self.persistConfig();
 
-			self.BUBBLES && app.success('Enable the ones you want, then click the map or refresh the page.', 'All species hidden.')
+			self.successBubble('Enable the ones you want, then click the map or refresh the page.', 'All species hidden.')
 		});
 
 		$('#pf-show-all').on('click', function () {
@@ -267,7 +329,7 @@ var PokemonFilter = new function () {
 			self.applyBlacklist();
 			self.persistConfig();
 
-			self.BUBBLES && app.success('Refresh the page or click the map to load them.', 'All species visible.')
+			self.successBubble('Refresh the page or click the map to load them.', 'All species visible.')
 		});
 	};
 };

@@ -14,6 +14,20 @@
     justify-content: flex-end;
     align-items: center;
     margin-bottom: 3px; }
+    .PokemonFilter .pf-box.filter-settings {
+      margin-top: 3px; }
+      .PokemonFilter .pf-box.filter-settings.first {
+        margin-top: 12px; }
+      .PokemonFilter .pf-box.filter-settings.last {
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #ccc; }
+      .PokemonFilter .pf-box.filter-settings label {
+        padding: 0 6px;
+        line-height: 1.6em;
+        margin-bottom: 0;
+        cursor: pointer;
+        font-weight: normal; }
     .PokemonFilter .pf-box.left {
       justify-content: flex-start; }
     .PokemonFilter .pf-box > * {

@@ -23,6 +23,28 @@
 		align-items: center;
 		margin-bottom: 3px;
 
+		&.filter-settings {
+			margin-top: 3px;
+
+			&.first {
+				margin-top: 12px;
+			}
+
+			&.last {
+				margin-bottom: 16px;
+				padding-bottom: 12px;
+				border-bottom: 2px solid #ccc;
+			}
+
+			label {
+				padding: 0 6px;
+				line-height: 1.6em;
+				margin-bottom: 0;
+				cursor: pointer;
+				font-weight: normal;
+			}
+		}
+
 		&.left {
 			justify-content: flex-start;
 		}

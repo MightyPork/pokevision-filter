@@ -135,7 +135,7 @@
 					field.removeAttr('disabled');
 					submit.removeAttr('disabled');
 					submit.html('<span class="glyphicon glyphicon-remove-sign"></span>');
-					App.error(o)
+					App.errorBubble(o)
 				});
 				return false
 			})
@@ -152,11 +152,11 @@
 					App.home.findNearbyPokemon(t, o);
 					window.location.hash = '#/@' + t + ',' + o
 				}, function (e) {
-					App.error(e.message)
+					App.errorBubble(e.message)
 				})
 			}
 			else {
-				App.error('Your browser doesn\'t support location tracking, sorry!')
+				App.errorBubble('Your browser doesn\'t support location tracking, sorry!')
 			}
 			;
 			return false
@@ -319,7 +319,7 @@
 			if (self.scanning) {
 				i.text('');
 				i.hide();
-				App.success('Scan complete! You can re-scan the area for new pokemon that spawn soon.');
+				App.successBubble('Scan complete! You can re-scan the area for new pokemon that spawn soon.');
 				a.addClass('is-on-cooldown');
 				a.find('strong').text('Click To Find Pokémon Near Marker');
 				setTimeout(function () {
