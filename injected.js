@@ -459,28 +459,28 @@ var PokemonFilter = new function () {
 		}else{
 			self.replaceBlacklist(idsToHide);
 		}
-	}
+	};
 
 	this.resetSpecCheckBoxes = function(){
 		var specBoxes = document.querySelectorAll(".spec-checkBox");
 		[].forEach.call(specBoxes, function(box) {
 			box.checked = false;
 		});
-	}
+	};
 
 	this.setSpecCheckBoxes = function(){
 		var specBoxes = document.querySelectorAll(".spec-checkBox");
 		[].forEach.call(specBoxes, function(box) {
 			box.checked = true;
 		});
-	}
+	};
 
 	this.rollBackSpecs = function(){
 		var checkBoxesToRestore = document.querySelectorAll('.spec-checkBox');
 		[].forEach.call(checkBoxesToRestore, function(box){
 			box.checked = previousSpecs[box.id];
 		});
-	}
+	};
 
 	this.toggleSpecView = function(){
 		var toggleButtons = document.getElementById("initial-buttons");
@@ -491,8 +491,7 @@ var PokemonFilter = new function () {
 
 		var toggleMenu = document.getElementById("spec-filters-box");
 		toggleMenu.style.display = toggleMenu.style.display === 'none' ? '' : 'none';
-	}
-
+	};
 };
 
 // Start up
