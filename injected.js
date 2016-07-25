@@ -30,6 +30,7 @@ var PokeFilter = new function () {
 		conf.load();
 		main._installFilter();
 		ui.init();
+
 		main.apply();
 
 		console.info("[filter] Filter ready, good hunting!");
@@ -101,7 +102,7 @@ PokeFilter.config = new function () {
 		var saved = {
 			enabled: true,
 			blacklists: [[], [], [], [], []],
-			preset_n: 0,
+			page: 0,
 			bubbles: true,
 			debug: false,
 			confirm_actions: true,
@@ -157,7 +158,7 @@ PokeFilter.config = new function () {
 		var toSave = {
 			enabled: conf.enabled,
 			blacklists: conf.blacklists,
-			preset_n: conf.page,
+			page: conf.page,
 			bubbles: conf.bubbles,
 			debug: conf.debug,
 			confirm_actions: conf.confirm_actions
