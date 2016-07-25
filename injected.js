@@ -435,7 +435,7 @@ var PokemonFilter = new function () {
 				typesFilter.push(box.getAttribute('poketype'));
 			}
 		});
-		if(typesFilter.isEmpty){
+		if(typesFilter.length == 0){
 			typesFilter = pokeTypes;
 		}
 
@@ -445,12 +445,12 @@ var PokemonFilter = new function () {
 				rarityFilter.push(box.getAttribute('pokerarity'));
 			}
 		});
-		if(rarityFilter.isEmpty){
+		if(rarityFilter.length == 0){
 			rarityFilter = pokeRarities;
 		}
 
 		[].forEach.call(pokeData, function(entry){
-			if(!rarityFilter.includes(entry.rarity) && !(typesFilter.includes(entry.type1) || typesFilter.includes(entry.type2))){
+			if(!rarityFilter.includes(entry.rarity) || !(typesFilter.includes(entry.type1) || typesFilter.includes(entry.type2))){
 				idsToHide.push(entry.dexNo)
 			}
 		});

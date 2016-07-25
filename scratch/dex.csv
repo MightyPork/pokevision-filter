@@ -136,9 +136,9 @@ dexNo;name;rarity;type1;type2
 135;Jolteon;epic;electric;NONE
 136;Flareon;epic;fire;NONE
 137;Porygon;very rare;normal;NONE
-138;Omanyte;;rock;water
+138;Omanyte;rare;rock;water
 139;Omastar;very rare;rock;water
-140;Kabuto;;rock;water
+140;Kabuto;rare;rock;water
 141;Kabutops;very rare;rock;water
 142;Aerodactyl;rare;rock;flying
 143;Snorlax;rare;normal;NONE
