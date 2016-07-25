@@ -230,11 +230,13 @@ PokeFilter.config = new function () {
 	};
 
 	this.hidePokemon = function (id) {
+		conf.debug && console.log("[filter] Hide pokemon", id, '(' + dex.name(id) + ')');
 		conf.blacklists[conf.page].push(+id);
 		main.apply();
 	};
 
 	this.showPokemon = function (id) {
+		conf.debug && console.log("[filter] Show pokemon", id, '(' + dex.name(id) + ')');
 		conf.blacklists[conf.page] = _.difference(conf.blacklists[conf.page], [+id]);
 		main.apply();
 	};
@@ -259,8 +261,6 @@ PokeFilter.config = new function () {
 			state = !conf.isPokemonHidden(id, true);
 		}
 
-		conf.debug && console.log('[filter] Toggling pokemon:', id, '(' + dex.name(id) + ') - ', (state ? 'SHOW' : 'HIDE'));
-
 		if (state) {
 			conf.hidePokemon(id);
 		} else {
@@ -269,16 +269,19 @@ PokeFilter.config = new function () {
 	};
 
 	this.showAllPokemon = function () {
+		conf.debug && console.log("[filter] Show ALL");
 		conf.blacklists[conf.page].length = 0;
 		main.apply();
 	};
 
 	this.hideAllPokemon = function () {
+		conf.debug && console.log("[filter] Hide ALL");
 		conf.blacklists[conf.page] = _.range(1, main.TOTAL_POKEMON_COUNT + 1);
 		main.apply();
 	};
 
 	this.replaceBlacklist = function (list) {
+		conf.debug && console.log("[filter] Replaced blacklist page with",list);
 		conf.blacklists[conf.page] = list;
 		main.apply();
 	};
