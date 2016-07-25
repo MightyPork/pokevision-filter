@@ -207,7 +207,7 @@ PokeFilter.config = new function () {
 		id = +id;
 
 		if (_.isUndefined(state)) {
-			state = !conf.isPokemonHidden(id);
+			state = !conf.isPokemonHidden(id, true);
 		}
 
 		conf.debug && console.log('[filter] Toggling pokemon:', id, '(' + main.idName(id) + ') - ', (state ? 'SHOW' : 'HIDE'));
@@ -423,7 +423,7 @@ PokeFilter.ui = new function () {
 		});
 
 		// Bubbles checkbox
-		$('#pf-bubbles').attr('checked', conf.enabled).on('change', function () {
+		$('#pf-bubbles').attr('checked', conf.bubbles).on('change', function () {
 			conf.bubbles = $(this).is(':checked');
 			conf.persist();
 
