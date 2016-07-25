@@ -270,7 +270,8 @@ PokeFilter.ui = new function () {
 
 	/** Ask for a confirmation */
 	this.confirm = function(question) {
-		return conf.confirm_actions ? confirm(question) : true;
+		if (!conf.confirm_actions) return true;
+		return confirm(question);
 	};
 
 	/** Show a success bubble (green) */
@@ -513,10 +514,11 @@ PokeFilter.ui = new function () {
 
 		// Button to close the box & apply spec filters
 		$('#spec-apply-spec').on('click', function () {
-			if (ui.confirm('Apply filters? This will overwrite the current filter page.'))
-			ui._specApply();
-			ui._specToggleView();
-			ui.successBubble('Filters applied!');
+			if (ui.confirm('Apply filters? This will overwrite the current filter page.')) {
+				ui._specApply();
+				ui._specToggleView();
+				ui.successBubble('Filters applied!');
+			}
 		});
 
 		// Mark change on checkbox click
