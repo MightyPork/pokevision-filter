@@ -1,6 +1,18 @@
 .PokemonFilter {
+
 	margin: -26px;
 	margin-bottom: 5px;
+
+	label {
+		font-weight: normal;
+	}
+
+	input[type=checkbox] {
+		margin-right: .3em;
+		vertical-align: middle;
+	}
+
+	// pokemon icon
 	img {
 		cursor: pointer;
 

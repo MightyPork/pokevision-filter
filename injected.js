@@ -470,19 +470,19 @@ PokeFilter.ui = new function () {
 		var specFiltersBox = $('<div class="pf-specFilters" id="spec-filters-box" style="display: none"></div>');
 
 		//adding type-checkboxes
-		specFiltersBox.append('<label class="pf-title pf-box left">Types</label>');
+		specFiltersBox.append('<span class="pf-title pf-box left">Types</span>');
 		for (var t = 0; t < pokeTypes.length; t++) {
 			specFiltersBox.append('<div class="spec-check-element">' +
-				'<input type="checkbox" poketype="' + pokeTypes[t] + '" id="spec-toggle-' + pokeTypes[t] + '" class="spec-checkBox pokeType">' + '<label' +
-				' class="pf-title"' + ' for="spec-toggle-' + pokeTypes[t] + '">' + pokeTypes[t] + '</label></div>');
+				'<input type="checkbox" poketype="' + pokeTypes[t] + '" id="spec-toggle-' + pokeTypes[t] + '" class="spec-checkBox pokeType">' +
+				'<label for="spec-toggle-' + pokeTypes[t] + '">' + pokeTypes[t] + '</label></div>');
 		}
 
 		//adding rarity-checkboxes
-		specFiltersBox.append('<label class="pf-title pf-box left" >Rarities</label>');
+		specFiltersBox.append('<span class="pf-title pf-box left" >Rarities</span>');
 		for (var r = 0; r < pokeRarities.length; r++) {
-			specFiltersBox.append('<div class="spec-check-element"><input type="checkbox" pokerarity="' + pokeRarities[r] + '" id="spec-toggle-' + pokeRarities[r] + '" class="spec-checkBox pokeRarity">' + '<label' +
-				' class="pf-title"' +
-				' for="spec-toggle-' + pokeRarities[r] + '">' + pokeRarities[r] + '</label></div>');
+			specFiltersBox.append(
+				'<div class="spec-check-element"><input type="checkbox" pokerarity="' + pokeRarities[r] + '" id="spec-toggle-' + pokeRarities[r] + '" class="spec-checkBox pokeRarity">' +
+				'<label for="spec-toggle-' + pokeRarities[r] + '">' + pokeRarities[r] + '</label></div>');
 		}
 		var buttonsBox = $('<div class="pf-box left">' +
 			'<a class="pf-toggle" id="spec-cancel-spec">Cancel</a>' +

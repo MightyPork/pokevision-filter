@@ -1,6 +1,11 @@
 .PokemonFilter {
   margin: -26px;
   margin-bottom: 5px; }
+  .PokemonFilter label {
+    font-weight: normal; }
+  .PokemonFilter input[type=checkbox] {
+    margin-right: .3em;
+    vertical-align: middle; }
   .PokemonFilter img {
     cursor: pointer; }
     .PokemonFilter img:hover {
