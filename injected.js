@@ -20,6 +20,8 @@ var PokeFilter = new function () {
 
 		if (_.isUndefined(app) || $('main').hasClass('error')) {
 			console.warn('[filter] Either the site scripts changed, or it didn\'t load right.\nCannot init PokéVision Filter.');
+
+			//ui.applySnark();
 			return;
 		}
 
@@ -62,11 +64,13 @@ var PokeFilter = new function () {
 		home.updateMarkers();
 	};
 
+	/** Tag the pokémon for styling */
 	this._decoratePokeMarker = function(marker, id) {
-		// Tag the pokémon for styling
-		marker._icon.classList.add('pf-map-pokemon');
-		marker._icon.classList.add('pf-map-pokemon-'+id);
-		marker._icon.classList.add('pf-map-pokemon-rarity-' + dex.rarity(id).replace(' ', '_'));
+		if (!marker  || !marker._icon) return;
+
+		marker._icon.classList.add('pf-map-poke');
+		marker._icon.classList.add('pf-map-id-'+id);
+		marker._icon.classList.add('pf-map-r-' + dex.rarity(id).replace(' ', '-'));
 	};
 
 	/** Wrap the createMarker function in a filter */
@@ -334,6 +338,11 @@ PokeFilter.ui = new function () {
 		if (!conf.bubbles) return;
 		toastr.remove();
 		app.error(text, heading);
+	};
+
+	this.applySnark = function() {
+		$('main.error h2').text('LOL you thought you\'ll catch some Pokémon?');
+		$('main.error p').text('Too fucking bad.');
 	};
 
 	/** Mark hidden / visible Pokémon in the filter panel. */
