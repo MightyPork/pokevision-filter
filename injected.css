@@ -1,3 +1,11 @@
+.leaflet-marker-icon-wrapper {
+  margin-left: -24px !important;
+  margin-top: -24px !important; }
+
+.leaflet-marker-icon-wrapper.pf-map-center {
+  margin-left: 0 !important;
+  margin-top: 0 !important; }
+
 .PokemonFilter {
   margin: -26px;
   margin-bottom: 5px; }

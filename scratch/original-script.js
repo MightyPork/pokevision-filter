@@ -164,7 +164,7 @@
 	}
 };
 ;App.home = new function () {
-	var app_home = this;
+	var home = this;
 	this.TIMER_JOB = 2500;
 	this.TIMER_UPDATE = 30000;
 	this.TIMER_ERROR = 30000;
@@ -189,12 +189,17 @@
 		this.pokedex = e.pokedex || this.pokedex;
 		setInterval(this.updateMarkers, 1000)
 	};
-	this.initMap = function () {
-		var o = $('.home-map-wrapper'), a = $('.home-map-scan'), filter_select = $('select[name=filters]');
+	this.initMap = function (t) {
+		var a = $('.home-map-wrapper'), r = $('.home-map-loading'), s = $('.home-map-scan'), n = $('select[name=filters]');
+		if (!t) {
+			r.html('<span class="loading-disabled">We\'re sorry but the Pokemon Trainer Club service is currently offline so we can\'t perform any scans. Please <a href="https://twitter.com/pokevisiongo">follow us on Twitter</a> to get real-time updates on when service is restored.</span>');
+			return
+		}
+		;
 		this.tooltipElem = $('.home-map-tooltip');
-		this.map = L.map(o.get(0), {center: {lat: this.latitude, lng: this.longitude}, zoom: 17, zoomControl: !1});
+		this.map = L.map(a.get(0), {center: {lat: this.latitude, lng: this.longitude}, zoom: 17, zoomControl: !1});
 		this.map.attributionControl.setPrefix(!1);
-		var i = L.Control.extend({
+		var o = L.Control.extend({
 			options: {position: 'bottomright', marginTop: 0, marginLeft: 0, marginBottom: 0, marginRight: 0}, onAdd: function () {
 				var e = L.DomUtil.create('div', 'esri-leaflet-logo');
 				e.style.marginTop = this.options.marginTop;
@@ -205,37 +210,37 @@
 				return e
 			}
 		});
-		var n = new i({marginBottom: 10, marginRight: 10});
-		n.addTo(this.map);
+		var i = new o({marginBottom: 10, marginRight: 10});
+		i.addTo(this.map);
 		L.control.zoom({position: 'bottomright'}).addTo(this.map);
 		L.tileLayer('//server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {attribution: '<a href="https://www.esri.com/">&copy; Esri</a>, USGS, NOAA'}).addTo(this.map);
 		L.Icon.Default.imagePath = '/asset/image/leaflet/';
 		this.markers.center = L.marker({lat: this.latitude, lng: this.longitude}).addTo(this.map);
 		this.map.on('click', function (t) {
-			app_home.markers.center.setLatLng(t.latlng);
-			app_home.latitude = t.latlng.lat;
-			app_home.longitude = t.latlng.lng;
-			app_home.findNearbyPokemon(app_home.latitude, app_home.longitude);
-			window.history.replaceState(null, null, '#/@' + app_home.latitude + ',' + app_home.longitude)
+			home.markers.center.setLatLng(t.latlng);
+			home.latitude = t.latlng.lat;
+			home.longitude = t.latlng.lng;
+			home.findNearbyPokemon(home.latitude, home.longitude);
+			window.history.replaceState(null, null, '#/@' + home.latitude + ',' + home.longitude)
 		});
-		a.on('click', function () {
-			app_home.findNearbyPokemon(app_home.latitude, app_home.longitude, !0);
+		s.on('click', function () {
+			home.findNearbyPokemon(home.latitude, home.longitude, !0);
 			return !1
 		}).removeAttr('disabled');
-		filter_select.on('changed.bs.select', function (n, i, a, r) {
-			var s = $(this), o = filter_select.val();
-			if (o) {
-				app_home.filters = o.map(function (e) {
+		n.on('change', function () {
+			var t = n.val();
+			if (t) {
+				home.filters = t.map(function (e) {
 					return parseInt(e)
 				})
 			}
 			else {
-				app_home.filters = []
+				home.filters = ['none']
 			}
 			;
-			app_home.updateMarkers()
+			home.updateMarkers()
 		});
-		filter_select.selectpicker({
+		n.selectpicker({
 			noneSelectedText: 'Showing no pokemon', selectedTextFormat: 'count > 4', countSelectedText: function (e, t) {
 				return 'Showing ' + e + ' pokemon'
 			}
@@ -243,79 +248,79 @@
 		this.updateMarkers();
 		this.findNearbyPokemon(this.latitude, this.longitude);
 		setInterval(function () {
-			app_home.findNearbyPokemon(app_home.latitude, app_home.longitude)
+			home.findNearbyPokemon(home.latitude, home.longitude)
 		}, this.TIMER_UPDATE)
 	};
-	this.findNearbyPokemon = function (t, i, s, o) {
-		var a = $('.home-map-loading'), n = a.find('.loading-message'), r = $('.home-map-scan');
-		if (app_home.loading) {
+	this.findNearbyPokemon = function (t, i, s, r) {
+		var o = $('.home-map-loading'), n = o.find('.loading-message'), a = $('.home-map-scan');
+		if (home.loading) {
 			return
 		}
 		;
-		if (app_home.scanning && !o) {
+		if (home.scanning && !r) {
 			return
 		}
 		;
-		if (!app_home.scanning && app_home.loadingTimer) {
-			clearInterval(app_home.loadingTimer);
-			app_home.loadingTimer = null
+		if (!home.scanning && home.loadingTimer) {
+			clearInterval(home.loadingTimer);
+			home.loadingTimer = null
 		}
 		;
-		app_home.loading = !0;
-		if (a.is(':hidden')) {
-			a.addClass('home-map-loading-mini');
-			a.fadeIn(200)
+		home.loading = !0;
+		if (o.is(':hidden')) {
+			o.addClass('home-map-loading-mini');
+			o.fadeIn(200)
 		}
 		;
 		if (s) {
-			app_home.scanning = !0;
-			r.attr('disabled', !0);
-			r.find('strong').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>');
+			home.scanning = !0;
+			a.attr('disabled', !0);
+			a.find('strong').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>');
 			return App.request('/map/scan/' + t + '/' + i, function (n) {
-				app_home.loading = !1;
-				app_home.loadingTimer = setTimeout(function () {
-					app_home.findNearbyPokemon(t, i, !1, n.jobId)
-				}, app_home.TIMER_JOB)
+				home.loading = !1;
+				home.loadingTimer = setTimeout(function () {
+					home.findNearbyPokemon(t, i, !1, n.jobId)
+				}, home.TIMER_JOB)
 			}, function (o) {
 				if (o.indexOf('{disabled}') > -1) {
-					n.text('Scanning is currently disabled temporarily, retrying in ' + (app_home.TIMER_ERROR / 1000) + ' seconds.');
+					n.text('Scanning is currently disabled temporarily, retrying in ' + (home.TIMER_ERROR / 1000) + ' seconds.');
 					n.css('display', 'inline-block')
 				}
 				else if (o.indexOf('{scan-throttle}') > -1) {
-					n.text('You already scanned recently, retrying in ' + (app_home.TIMER_ERROR / 1000) + ' seconds.');
+					n.text('You already scanned recently, retrying in ' + (home.TIMER_ERROR / 1000) + ' seconds.');
 					n.css('display', 'inline-block')
 				}
 				else {
-					n.text('Unable to send scan request due to an internal error, retrying in ' + (app_home.TIMER_ERROR / 1000) + ' seconds.');
+					n.text('Unable to send scan request due to an internal error, retrying in ' + (home.TIMER_ERROR / 1000) + ' seconds.');
 					n.css('display', 'inline-block')
 				}
 				;
-				app_home.loading = !1;
-				app_home.loadingTimer = setTimeout(function () {
-					app_home.scanning = !1;
-					app_home.findNearbyPokemon(t, i, !0)
-				}, app_home.TIMER_SCAN_ERROR)
+				home.loading = !1;
+				home.loadingTimer = setTimeout(function () {
+					home.scanning = !1;
+					home.findNearbyPokemon(t, i, !0)
+				}, home.TIMER_SCAN_ERROR)
 			})
 		}
 		;
-		return App.request('/map/data/' + t + '/' + i + (o ? '/' + o : ''), function (s) {
+		return App.request('/map/data/' + t + '/' + i + (r ? '/' + r : ''), function (s) {
 			if (s.jobStatus) {
 				if (s.jobStatus == 'failure' || s.jobStatus == 'unknown') {
-					n.text('Unable to scan for pokemon, retrying in ' + (app_home.TIMER_SCAN_ERROR / 1000) + ' seconds. If this continues to fail then the Pokemon servers are currently unstable or offline.');
+					n.text('Unable to scan for pokemon, retrying in ' + (home.TIMER_SCAN_ERROR / 1000) + ' seconds. If this continues to fail then the Pokemon servers are currently unstable or offline.');
 					n.css('display', 'inline-block');
-					app_home.loading = !1;
-					app_home.loadingTimer = setTimeout(function () {
-						app_home.scanning = !1;
-						app_home.findNearbyPokemon(t, i, !0)
-					}, app_home.TIMER_SCAN_ERROR)
+					home.loading = !1;
+					home.loadingTimer = setTimeout(function () {
+						home.scanning = !1;
+						home.findNearbyPokemon(t, i, !0)
+					}, home.TIMER_SCAN_ERROR)
 				}
 				else if (s.jobStatus == 'in_progress') {
 					n.text('');
 					n.hide();
-					app_home.loading = !1;
-					app_home.loadingTimer = setTimeout(function () {
-						app_home.findNearbyPokemon(t, i, !1, o)
-					}, app_home.TIMER_JOB)
+					home.loading = !1;
+					home.loadingTimer = setTimeout(function () {
+						home.findNearbyPokemon(t, i, !1, r)
+					}, home.TIMER_JOB)
 				}
 				;
 				return
@@ -323,104 +328,104 @@
 			;
 			for (var d in s.pokemon) {
 				var l = !1;
-				for (var m in app_home.pokemon) {
-					if (app_home.pokemon[m].id == s.pokemon[d].id) {
+				for (var m in home.pokemon) {
+					if (home.pokemon[m].id == s.pokemon[d].id) {
 						l = !0
 					}
 				}
 				;
 				if (!l) {
-					app_home.pokemon.push(s.pokemon[d])
+					home.pokemon.push(s.pokemon[d])
 				}
 			}
 			;
-			app_home.updateMarkers();
-			if (app_home.scanning) {
+			home.updateMarkers();
+			if (home.scanning) {
 				n.text('');
 				n.hide();
 				App.success('Scan complete! You can re-scan the area for new pokemon that spawn soon.');
-				r.addClass('is-on-cooldown');
-				r.find('strong').text('Click To Find Pokémon Near Marker');
+				a.addClass('is-on-cooldown');
+				a.find('strong').text('Click To Find Pokémon Near Marker');
 				setTimeout(function () {
-					r.removeClass('is-on-cooldown');
-					r.removeAttr('disabled')
-				}, app_home.TIMER_SCAN_DELAY)
+					a.removeClass('is-on-cooldown');
+					a.removeAttr('disabled')
+				}, home.TIMER_SCAN_DELAY)
 			}
 			;
-			app_home.scanning = !1;
-			app_home.loading = !1;
-			app_home.loadingTimer = null;
-			if (a.is(':visible')) {
-				a.fadeOut(200)
+			home.scanning = !1;
+			home.loading = !1;
+			home.loadingTimer = null;
+			if (o.is(':visible')) {
+				o.fadeOut(200)
 			}
-		}, function (a) {
+		}, function (o) {
 			n.text('Unable to process response. We are aware of this issue and trying to fix. Please try to refresh the page to potentially solve issue!');
 			n.css('display', 'inline-block');
-			app_home.loading = !1;
-			app_home.loadingTimer = setTimeout(function () {
-				app_home.findNearbyPokemon(t, i, !1, o)
-			}, app_home.TIMER_ERROR)
+			home.loading = !1;
+			home.loadingTimer = setTimeout(function () {
+				home.findNearbyPokemon(t, i, !1, r)
+			}, home.TIMER_ERROR)
 		})
 	};
 	this.updateMarkers = function () {
-		if (!app_home.map) {
+		if (!home.map) {
 			return
 		}
 		;
-		for (var n in app_home.pokemon) {
-			var o = app_home.pokemon[n], a = o.expiration_time - Math.floor(+new Date() / 1000), t = app_home.markers['pokemon-' + n], i = !0;
+		for (var n in home.pokemon) {
+			var o = home.pokemon[n], a = o.expiration_time - Math.floor(+new Date() / 1000), t = home.markers['pokemon-' + n], i = !0;
 			if (a <= 0) {
 				if (t) {
-					app_home.map.removeLayer(t);
-					delete app_home.markers['pokemon-' + n]
+					home.map.removeLayer(t);
+					delete home.markers['pokemon-' + n]
 				}
 				;
-				delete app_home.pokemon[n];
+				delete home.pokemon[n];
 				continue
 			}
 			;
 			if (!t) {
-				t = app_home.createMarker(n, o);
+				t = home.createMarker(n, o);
 				t.addedToMap = !0
 			}
 			;
-			if (app_home.filters.length > 0) {
-				if (app_home.filters.indexOf(o.pokemonId) == -1) {
+			if (home.filters.length > 0) {
+				if (home.filters.indexOf(o.pokemonId) == -1) {
 					i = !1
 				}
 			}
 			;
 			if (i && !t.addedToMap) {
-				app_home.map.addLayer(t);
+				home.map.addLayer(t);
 				t.addedToMap = !0
 			}
 			else if (!i && t.addedToMap) {
-				app_home.map.removeLayer(t);
+				home.map.removeLayer(t);
 				t.addedToMap = !1
 			}
 			;
 			if (i) {
-				t.updateLabel(app_home.secondsToString(a))
+				t.updateLabel(home.secondsToString(a))
 			}
 		}
 	};
 	this.createMarker = function (t, n) {
 		var a = $('body'), r = n.expiration_time - Math.floor(+new Date() / 1000), s = L.Icon.Label.extend({options: {iconUrl: '//ugc.pokevision.com/images/pokemon/' + n.pokemonId + '.png', shadowUrl: null, iconSize: new L.Point(48, 48), iconAnchor: new L.Point(0, 0), labelAnchor: new L.Point(10, 26), wrapperAnchor: new L.Point(0, 0), labelClassName: 'home-map-label'}});
-		var o = new s({labelText: app_home.secondsToString(r)});
+		var o = new s({labelText: home.secondsToString(r)});
 		var i = new L.Marker.Label({lat: n.latitude, lng: n.longitude}, {icon: o});
 		i.on('mouseover', function (t) {
-			var i = $(t.target._icon), o = n.expiration_time - Math.floor(+new Date() / 1000), r = '<strong>' + (app_home.pokedex[n.pokemonId] || 'Unknown') + '</strong><small>Despawns in ' + app_home.secondsToString(o);
-			app_home.tooltipElem.css({top: (i.offset().top - (a.hasClass('embed-map') ? 0 : 96)) + 'px', left: i.offset().left + 'px'});
-			app_home.tooltipElem.removeAttr('title');
-			app_home.tooltipElem.attr('data-original-title', r);
-			app_home.tooltipElem.tooltip({trigger: 'manual', html: !0}).tooltip('show')
+			var i = $(t.target._icon), o = n.expiration_time - Math.floor(+new Date() / 1000), r = '<strong>' + (home.pokedex[n.pokemonId] || 'Unknown') + '</strong><small>Despawns in ' + home.secondsToString(o);
+			home.tooltipElem.css({top: (i.offset().top - (a.hasClass('embed-map') ? 0 : 96)) + 'px', left: i.offset().left + 'px'});
+			home.tooltipElem.removeAttr('title');
+			home.tooltipElem.attr('data-original-title', r);
+			home.tooltipElem.tooltip({trigger: 'manual', html: !0}).tooltip('show')
 		});
 		i.on('mouseout', function () {
 			var e = $('.tooltip');
 			e.remove()
 		});
-		app_home.markers['pokemon-' + t] = i;
-		app_home.map.addLayer(i);
+		home.markers['pokemon-' + t] = i;
+		home.map.addLayer(i);
 		return i
 	};
 	this.secondsToString = function (e) {

@@ -3,35 +3,46 @@
 // Main 'class'
 var PokeFilter = new function () {
 	var main = this;
-	var ui, conf;
+	var ui, conf, dex;
 
 	// PokéVision code
 	var app = window.App;
 	var home = app.home;
 
-	this.TOTAL_POKEMON_COUNT = 150;
-
-	/** Get pokemon name by ID */
-	this.idName = function(id) {
-		return PokeFilter_names[+id];
-	};
+	this.TOTAL_POKEMON_COUNT = 151;
 
 	/** Start the extension */
 	this.init = function () {
 		// Can't do this statically - not yet loaded.
 		ui = PokeFilter.ui;
 		conf = PokeFilter.config;
+		dex = PokeFilter.dex;
 
 		if (_.isUndefined(app) || $('main').hasClass('error')) {
 			console.warn('[filter] Either the site scripts changed, or it didn\'t load right.\nCannot init PokéVision Filter.');
 			return;
 		}
 
+		conf.init();
 		conf.load();
 		main._installFilter();
 		ui.init();
 
 		main.apply();
+
+		// Apply classes to already placed pokemon
+		_.each(home.markers, function(marker, key) {
+			if (key == 'center') {
+				console.log('Found center', marker);
+				marker._icon.classList.add('pf-map-center');
+			} else {
+				var idx = key.match(/(\d+)$/)[1];
+				var poke = home.pokemon[+idx];
+				var id = poke.pokemonId;
+				console.log('Found poke '+dex.name(id));
+				main._decoratePokeMarker(marker, id);
+			}
+		});
 
 		console.info("[filter] Filter ready, good hunting!");
 	};
@@ -51,17 +62,22 @@ var PokeFilter = new function () {
 		home.updateMarkers();
 	};
 
+	this._decoratePokeMarker = function(marker, id) {
+		// Tag the pokémon for styling
+		marker._icon.classList.add('pf-map-pokemon');
+		marker._icon.classList.add('pf-map-pokemon-'+id);
+		marker._icon.classList.add('pf-map-pokemon-rarity-' + dex.rarity(id).replace(' ', '_'));
+	};
+
 	/** Wrap the createMarker function in a filter */
 	this._installFilter = function () {
 		conf.debug && console.log("[filter] Installing marker processor.");
 
 		home.createMarkerOrig = home.createMarker;
-		home.createMarker = function (idx, pk) {
-			var marker = home.createMarkerOrig(idx, pk);
-
-			// TODO we can do some neat stuff with the marker here
-
-			return marker;
+		home.createMarker = function (idx, poke) {
+			var marker = home.createMarkerOrig(idx, poke);
+			main._decoratePokeMarker(marker, poke.pokemonId);
+			return marker
 		};
 	};
 
@@ -77,9 +93,35 @@ var PokeFilter = new function () {
 	};
 };
 
+PokeFilter.dex = new function () {
+	var dex = this;
+	var pokes = PokeFilter_dex.fullDex;
+
+	this._find = function(id) {
+		return pokes[id-1];
+	};
+
+	this.name = function(id) {
+		return dex._find(id).name;
+	};
+
+	this.rarity = function(id) {
+		return dex._find(id).rarity;
+	};
+
+	this.type1 = function(id) {
+		return dex._find(id).rarity;
+	};
+
+	this.type2 = function(id) {
+		return dex._find(id).rarity;
+	};
+};
+
 // Config. Changing config using the methods generally applies the change immediately.
 PokeFilter.config = new function () {
 	var conf = this;
+	var dex;
 	var main = PokeFilter;
 
 	conf.debug = false;
@@ -88,6 +130,10 @@ PokeFilter.config = new function () {
 	conf.blacklists = [];
 	conf.page = 0;
 	conf.confirm_actions = true;
+
+	this.init = function () {
+		dex = PokeFilter.dex;
+	};
 
 	// The currently open blacklist is 'main.blacklist'.
 	// Gotta replace it in the blacklists array when saving.
@@ -211,7 +257,7 @@ PokeFilter.config = new function () {
 			state = !conf.isPokemonHidden(id, true);
 		}
 
-		conf.debug && console.log('[filter] Toggling pokemon:', id, '(' + main.idName(id) + ') - ', (state ? 'SHOW' : 'HIDE'));
+		conf.debug && console.log('[filter] Toggling pokemon:', id, '(' + dex.name(id) + ') - ', (state ? 'SHOW' : 'HIDE'));
 
 		if (state) {
 			conf.hidePokemon(id);
@@ -250,7 +296,7 @@ PokeFilter.config = new function () {
 PokeFilter.ui = new function () {
 	var ui = this;
 	var main = PokeFilter;
-	var app, conf;
+	var app, conf, dex;
 
 	var filterDiv;
 
@@ -263,6 +309,7 @@ PokeFilter.ui = new function () {
 
 	this.init = function () {
 		conf = PokeFilter.config;
+		dex = PokeFilter.dex;
 		app = window.App;
 
 		this._hideVanillaFilter();
@@ -270,7 +317,7 @@ PokeFilter.ui = new function () {
 	};
 
 	/** Ask for a confirmation */
-	this.confirm = function(question) {
+	this.confirm = function (question) {
 		if (!conf.confirm_actions) return true;
 		return confirm(question);
 	};
@@ -321,7 +368,9 @@ PokeFilter.ui = new function () {
 
 	this._hideVanillaFilter = function () {
 		var crapFilter = document.querySelector('.btn-group.bootstrap-select.show-tick.form-control');
-		crapFilter.style.display = 'none';
+		if (crapFilter) {
+			crapFilter.style.display = 'none';
+		}
 	};
 
 	/** Build the two boxes on top of the filter */
@@ -375,7 +424,7 @@ PokeFilter.ui = new function () {
 		for (var id = 1; id < main.TOTAL_POKEMON_COUNT + 1; id++) {
 			var img = document.createElement('img');
 			img.src = 'https://ugc.pokevision.com/images/pokemon/' + id + '.png';
-			img.title = main.idName(id) + ' - ' + id + '';
+			img.title = dex.name(id) + ' - ' + id + '';
 			img.classList.add('x-filter-pokemon');
 			img.id = 'filter-pokemon-id-' + id;
 			img.dataset.id = id;
