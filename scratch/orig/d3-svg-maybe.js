@@ -26,7 +26,7 @@
 
 	function v(t) {
 		var e = this.internal = new b(this);
-		e.loadConfig(t);
+		e.load(t);
 		e.beforeInit(t);
 		e.init();
 		e.afterInit(t);
@@ -1204,7 +1204,7 @@
 		return t
 	};
 	e.additionalConfig = {};
-	e.loadConfig = function (t) {
+	e.load = function (t) {
 		var n = this.config,
 			e, a, i;
 

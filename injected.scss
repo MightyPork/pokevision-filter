@@ -37,9 +37,16 @@
 
 		&.filter-settings {
 			margin-top: 3px;
+			padding-left: 25px;
 
 			&.first {
 				margin-top: 12px;
+				border-top: 2px solid #ccc;
+				padding-top: 10px;
+			}
+
+			&.caption {
+				font-weight: bold;
 			}
 
 			&.last {

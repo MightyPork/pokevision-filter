@@ -20,7 +20,7 @@
 	"web_accessible_resources": [
 		"lib/lodash.min.js",
 		"resources/dex.js",
-		"resources/pokemon-names.js",
+		"resources/names.js",
 		"injected.js",
 		"injected.css"
 	],

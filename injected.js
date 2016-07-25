@@ -1,512 +1,595 @@
 "use strict";
 
-var PokemonFilter = new function () {
-	var self = this;
+// Main 'class'
+var PokeFilter = new function () {
+	var main = this;
+	var ui, conf;
 
+	// PokéVision code
 	var app = window.App;
-
 	var home = app.home;
-	var pokedex = home.pokedex;
-	var invPokedex = _.invert(home.pokedex); // for lookup by name
 
-	var pokeTypes = window.dexData.pokeTypes;
-	var pokeRarities = window.dexData.rarities;
-	var pokeData = window.dexData.fullDex;
+	this.TOTAL_POKEMON_COUNT = 150;
 
-	var specsEdited = false;
-	var previousSpecs;
-
-	// Pokemon that can't be caught - don't show buttons for them
-	var UNOBTAINABLES = [
-		+invPokedex['Mew'],
-		+invPokedex['Mewtwo']
-	];
-
-	var TOTAL_POKEMON_COUNT = 150;
-
-	//region Config
-
-	self.debug = false;
-	self.bubbles = false;
-	self.enabled = true;
-	self.blacklists = [];
-	self.preset_n = 0;
-
-	// This will be a pointer to the active blacklist save slot
-	self.blacklist = [];
+	/** Get pokemon name by ID */
+	this.idName = function(id) {
+		return PokeFilter_names[+id];
+	};
 
 	/** Start the extension */
 	this.init = function () {
+		// Can't do this statically - not yet loaded.
+		ui = PokeFilter.ui;
+		conf = PokeFilter.config;
+
 		if (_.isUndefined(app) || $('main').hasClass('error')) {
 			console.warn('[filter] Either the site scripts changed, or it didn\'t load right.\nCannot init PokéVision Filter.');
 			return;
 		}
 
-		self.loadConfig();
-
-		self.installFilter();
-		self.applyBlacklist();
-		self.buildUserInterface();
+		conf.load();
+		main._installFilter();
+		ui.init();
+		main.apply();
 
 		console.info("[filter] Filter ready, good hunting!");
-		var crapFilter = document.querySelector('.btn-group.bootstrap-select.show-tick.form-control');
-		crapFilter.style.display = 'none';
-	};
-
-	/** Show a success bubble (green) */
-	this.successBubble = function(text, heading) {
-		self.debug && console.log('[filter] ' + heading + ' ' + text);
-
-		if (!self.bubbles) return;
-		toastr.remove();
-		app.success(text, heading);
-	};
-
-	/** Show an error bubble (red) */
-	this.errorBubble = function(text, heading) {
-		self.debug && console.log('[filter] ' + heading, ' ' + text);
-
-		if (!self.bubbles) return;
-		toastr.remove();
-		app.error(text, heading);
-	};
-
-	/**
-	 * Load settings from localStorage
-	 * TODO use Chrome sync instead
-	 */
-	this.loadConfig = function () {
-		var configStr = localStorage.getItem('pokemon_filter');
-
-		// Defaults
-		var config = {
-			enabled: true,
-			blacklists: [[], [], [], [], []],
-			preset_n: 0,
-			bubbles: true,
-			debug: false
-		};
-
-		if (configStr) {
-			try {
-				config = JSON.parse(configStr);
-			} catch (e) {
-				console.warn("[filter] PokemonFilter config corrupted, cleaning up.");
-			}
-		}
-
-		// Load the config
-		self.blacklists = config.blacklists;
-		if (_.isUndefined(self.blacklists) || !_.isArray(self.blacklists) || self.blacklists.length != 5) {
-			self.blacklists = [[], [], [], [], []];
-		}
-
-		self.preset_n = config.preset_n || 0;
-		self.enabled = !!config.enabled;
-		self.bubbles = !!config.bubbles;
-		self.debug = !!config.debug;
-
-		// 'Open the slot'
-		self.blacklist = self.blacklists[self.preset_n];
-
-		self.debug && console.log("[filter] Config loaded: ", config);
-	};
-
-	/**
-	 * Store current settings to localStorage
-	 * TODO use Chrome sync instead
-	 */
-	this.persistConfig = function () {
-		// Remove nulls
-		for (var i = 0; i < self.blacklists.length; i++) {
-			self.blacklists[i] = _.filter(self.blacklists[i], function(x) {return !_.isUndefined(x) && !_.isNull(x)});
-		}
-
-		// Fix broken reference
-		self.blacklist = self.blacklists[self.preset_n];
-
-		var config = {
-			enabled: self.enabled,
-			blacklists: self.blacklists,
-			preset_n: self.preset_n,
-			bubbles: self.bubbles,
-			debug: self.debug
-		};
-
-		localStorage.setItem('pokemon_filter', JSON.stringify(config));
-
-		self.debug && console.log("[filter] Saved config.");
-	};
-
-	//endregion
-
-	/** Check if a Pokémon is blacklisted */
-	this.isBlacklisted = function (id) {
-		return self.enabled && (self.blacklist.indexOf(+id) != -1);
 	};
 
 	/**
 	 * Remove pokemon already drawn on the map that match the current blacklist.
 	 */
-	this.applyBlacklist = function () {
-		self.debug && console.log('[filter] Removing hidden Pokémon from the map.');
+	this._applyBlacklist = function () {
+		conf.debug && console.log('[filter] Applying filter to the map.');
 
-		/*_.each(home.pokemon, function (entry) {
-			if (_.isUndefined(entry)) return;
+		var white = conf.getWhitelist();
+		if (!white.length) {
+			white = [undefined]; // workaround for a vanilla code peculiarity - empty is treated as Show all
+		}
 
-			if (self.isBlacklisted(entry.pokemonId)) {
-				// mark it expired - it'll get removed in updateMarkers()
-				entry.expiration_time -= 10000;
-			}
-		});*/
-		home.filters = self.getWhiteList();
+		home.filters = white;
 		home.updateMarkers();
 	};
 
+	/** Wrap the createMarker function in a filter */
+	this._installFilter = function () {
+		conf.debug && console.log("[filter] Installing marker processor.");
+
+		home.createMarkerOrig = home.createMarker;
+		home.createMarker = function (idx, pk) {
+			var marker = home.createMarkerOrig(idx, pk);
+
+			// TODO we can do some neat stuff with the marker here
+
+			return marker;
+		};
+	};
+
 	/**
-	 * Select a blacklist number (preset_n)
+	 * - Visually apply changes in config.
+	 * - Apply filter to the map.
+	 * - Persist config
 	 */
-	this.selectBlacklistPage = function(n) {
-		if (n < 0 || n >= self.blacklists.length) {
+	this.apply = function () {
+		ui.updateFilterVisuals();
+		main._applyBlacklist();
+		conf.persist();
+	};
+};
+
+// Config. Changing config using the methods generally applies the change immediately.
+PokeFilter.config = new function () {
+	var conf = this;
+	var main = PokeFilter;
+
+	conf.debug = false;
+	conf.bubbles = false;
+	conf.enabled = true;
+	conf.blacklists = [];
+	conf.page = 0;
+	conf.confirm_actions = true;
+
+	// The currently open blacklist is 'main.blacklist'.
+	// Gotta replace it in the blacklists array when saving.
+
+	/**
+	 * Load settings from localStorage
+	 */
+	this.load = function () {
+		var configStr = localStorage.getItem('pokemon_filter');
+
+		// Defaults
+		var saved = {
+			enabled: true,
+			blacklists: [[], [], [], [], []],
+			preset_n: 0,
+			bubbles: true,
+			debug: false,
+			confirm_actions: true,
+		};
+
+		if (configStr) {
+			try {
+				saved = JSON.parse(configStr);
+			} catch (e) {
+				console.warn("[filter] Config corrupted, cleaning up.");
+			}
+		}
+
+		if (_.isUndefined(saved.confirm_actions)) saved.confirm_actions = true;
+		if (_.isUndefined(saved.bubbles)) saved.bubbles = true;
+		if (_.isUndefined(saved.debug)) saved.debug = false;
+
+		// Load the config
+		conf.blacklists = saved.blacklists;
+		if (_.isUndefined(conf.blacklists) || !_.isArray(conf.blacklists) || conf.blacklists.length != 5) {
+			conf.blacklists = [[], [], [], [], []];
+		}
+
+		// Cast all items to numbers
+		for (var i = 0; i < conf.blacklists.length; i++) {
+			for (var j = 0; j < conf.blacklists[i].length; j++) {
+				conf.blacklists[i][j] *= 1;
+			}
+
+			conf.blacklists[i] = _.uniq(conf.blacklists[i]);
+		}
+
+		conf.page = saved.page || 0;
+		conf.enabled = !!saved.enabled;
+		conf.bubbles = !!saved.bubbles;
+		conf.debug = !!saved.debug;
+		conf.confirm_actions = !!saved.confirm_actions;
+
+		conf.debug && console.log("[filter] Config loaded: ", saved);
+	};
+
+	/**
+	 * Store current settings to localStorage
+	 */
+	this.persist = function () {
+		// Remove nulls
+		for (var i = 0; i < conf.blacklists.length; i++) {
+			conf.blacklists[i] = _.filter(conf.blacklists[i], function (x) {
+				return !_.isUndefined(x) && !_.isNull(x)
+			});
+		}
+
+		var toSave = {
+			enabled: conf.enabled,
+			blacklists: conf.blacklists,
+			preset_n: conf.page,
+			bubbles: conf.bubbles,
+			debug: conf.debug,
+			confirm_actions: conf.confirm_actions
+		};
+
+		localStorage.setItem('pokemon_filter', JSON.stringify(toSave));
+
+		conf.debug && console.log("[filter] Saved config.");
+	};
+
+	this.selectPage = function (n) {
+		if (n < 0 || n >= conf.blacklists.length) {
 			console.errorBubble("[filter] Invalid slot number:", n);
 			return;
 		}
 
-		self.blacklist = self.blacklists[n];
-		self.preset_n = n;
+		conf.page = n;
 
-		self.debug && console.log("[filter] Selected preset slot", n);
+		conf.debug && console.log("[filter] Switched to filter page:", n);
+		main.apply();
+	};
 
-		self.updateFilterVisuals();
+	this.hidePokemon = function (id) {
+		conf.blacklists[conf.page].push(+id);
+		main.apply();
+	};
 
-		self.persistConfig();
-		self.applyBlacklist();
+	this.showPokemon = function (id) {
+		conf.blacklists[conf.page] = _.difference(conf.blacklists[conf.page], [+id]);
+		main.apply();
+	};
 
-		self.successBubble('Click the map or refresh the page for it to have effect.', 'Filter preset changed');
+	/**
+	 * Test pokemon visibility.
+	 *
+	 * @param id
+	 * @param ignoreEnable - if true, disregard `conf.enabled`. Otherwise, if disabled, all are visible.
+	 * @returns {boolean}
+	 */
+	this.isPokemonHidden = function (id, ignoreEnable) {
+		id = +id;
+		if (!ignoreEnable && !conf.enabled) return false; // All visible if disabled.
+		return conf.blacklists[conf.page].indexOf(id) != -1;
+	};
+
+	this.togglePokemon = function (id, state) {
+		id = +id;
+
+		if (_.isUndefined(state)) {
+			state = !conf.isPokemonHidden(id);
+		}
+
+		conf.debug && console.log('[filter] Toggling pokemon:', id, '(' + main.idName(id) + ') - ', (state ? 'SHOW' : 'HIDE'));
+
+		if (state) {
+			conf.hidePokemon(id);
+		} else {
+			conf.showPokemon(id);
+		}
+	};
+
+	this.showAllPokemon = function () {
+		conf.blacklists[conf.page].length = 0;
+		main.apply();
+	};
+
+	this.hideAllPokemon = function () {
+		conf.blacklists[conf.page] = _.range(1, main.TOTAL_POKEMON_COUNT + 1);
+		main.apply();
+	};
+
+	this.replaceBlacklist = function (list) {
+		conf.blacklists[conf.page] = list;
+		main.apply();
+	};
+
+	this.getBlacklist = function () {
+		return conf.blacklists[conf.page];
+	};
+
+	this.getWhitelist = function () {
+		var all = _.range(1, main.TOTAL_POKEMON_COUNT + 1);
+		return _.difference(all, conf.getBlacklist());
+	};
+};
+
+// User Interface
+PokeFilter.ui = new function () {
+	var ui = this;
+	var main = PokeFilter;
+	var app, conf;
+
+	var filterDiv;
+
+	var pokeTypes = PokeFilter_dex.pokeTypes;
+	var pokeRarities = PokeFilter_dex.rarities;
+	var pokeData = PokeFilter_dex.fullDex;
+
+	var specsEdited = false;
+	var previousSpecs;
+
+	this.init = function () {
+		conf = PokeFilter.config;
+		app = window.App;
+
+		this._hideVanillaFilter();
+		this._buildUserInterface(); // TODO split
+	};
+
+	/** Ask for a confirmation */
+	this.confirm = function(question) {
+		return conf.confirm_actions ? confirm(question) : true;
+	};
+
+	/** Show a success bubble (green) */
+	this.successBubble = function (text, heading) {
+		conf.debug && console.log('[filter] ' + heading + ' ' + text);
+
+		if (!conf.bubbles) return;
+		toastr.remove();
+		app.success(text, heading);
+	};
+
+	/** Show an error bubble (red) */
+	this.errorBubble = function (text, heading) {
+		conf.debug && console.log('[filter] ' + heading, ' ' + text);
+
+		if (!conf.bubbles) return;
+		toastr.remove();
+		app.error(text, heading);
 	};
 
 	/** Mark hidden / visible Pokémon in the filter panel. */
 	this.updateFilterVisuals = function () {
-		$('.x-filter-pokemon').each(function(n, elem) {
+		// Update pokemon toggles
+		$('.x-filter-pokemon').each(function (n, elem) {
 			var id = $(elem).data('id');
-			$(elem).toggleClass('filter-hidden', self.isBlacklisted(id));
+			$(elem).toggleClass('filter-hidden', conf.isPokemonHidden(id));
+		});
+
+		// Mark current page as active
+		$('.pf-slot').removeClass('active');
+		$('#pf-slot-' + conf.page).addClass('active');
+	};
+
+	// region Build UI
+
+	/** Build the filter UI */
+	this._buildUserInterface = function () {
+		conf.debug && console.log("[filter] Building user interface...");
+
+		filterDiv = $('<div class="PokemonFilter"></div>');
+		$('.home-sidebar').prepend(filterDiv);
+
+		ui._buildTopNav();
+		ui._buildSpecFilterBox();
+		ui._buildPokeBox();
+		ui._buildConfigBox();
+	};
+
+	this._hideVanillaFilter = function () {
+		var crapFilter = document.querySelector('.btn-group.bootstrap-select.show-tick.form-control');
+		crapFilter.style.display = 'none';
+	};
+
+	/** Build the two boxes on top of the filter */
+	this._buildTopNav = function () {
+		// Top row with toggle buttons
+		var box1 = $('<div class="pf-box"></div>');
+		box1.append('<input type="checkbox" id="pf-enable">');
+		box1.append('<label class="pf-title" for="pf-enable">Pokémon Filter</label>');
+		for (var i = 0; i < conf.blacklists.length; i++) {
+			box1.append('<a class="pf-slot" id="pf-slot-' + i + '" data-n="' + i + '">' + (i + 1) + '</a>');
+		}
+		filterDiv.append(box1);
+
+		// Box with save slots
+		var box2 = $('<div class="pf-box left" id="initial-buttons"></div>');
+		box2.append('<a class="pf-toggle" id="pf-show-all">Show all</a>');
+		box2.append('<a class="pf-toggle" id="pf-hide-all">Hide all</a>');
+		box2.append('<a class="pf-toggle" id="pf-spec-filter-menu">By Attributes</a>');
+		filterDiv.append(box2);
+
+		// Selecting pages
+		$('.pf-slot').on('click', function () {
+			$('.pf-slot').removeClass('active');
+			$(this).addClass('active');
+			var n = $(this).data('n');
+
+			conf.selectPage(n);
+		});
+
+		// Hide & show buttons
+		$('#pf-hide-all').on('click', function () {
+			if (ui.confirm("Really hide all species? This will modify the current filter page.")) {
+				conf.hideAllPokemon();
+				ui._specUncheckAll();
+				ui.successBubble('All species hidden.');
+			}
+		});
+
+		$('#pf-show-all').on('click', function () {
+			if (ui.confirm("Really show all species? This will modify the current filter page.")) {
+				conf.showAllPokemon();
+				ui._specCheckAll();
+				ui.successBubble('All species visible.');
+			}
 		});
 	};
 
-	/** Wrap the createMarker function in a filter */
-	this.installFilter = function () {
-		self.debug && console.log("[filter] Installing Pokémon filter...");
+	this._buildPokeBox = function () {
+		// Box with the pokémon images
+		var pokemonBox = $('<div id="pf-pokebox"></div>');
+		for (var id = 1; id < main.TOTAL_POKEMON_COUNT + 1; id++) {
+			var img = document.createElement('img');
+			img.src = 'https://ugc.pokevision.com/images/pokemon/' + id + '.png';
+			img.title = main.idName(id) + ' - ' + id + '';
+			img.classList.add('x-filter-pokemon');
+			img.id = 'filter-pokemon-id-' + id;
+			img.dataset.id = id;
 
-		home.createMarkerOrig = home.createMarker;
-		home.createMarker = function (idx, pk) {
-			if (self.isBlacklisted(pk.pokemonId)) {
-				// Return a harmless do-nothing stub
-				return {
-					updateLabel: function () {
-						// no-op
-					}
-				};
+			pokemonBox.append(img);
+		}
+		filterDiv.append(pokemonBox);
+
+		// Toggle pokémon on click
+		$('.x-filter-pokemon').on('click', function () {
+			ui._specUncheckAll();
+			conf.togglePokemon(this.dataset.id);
+		});
+	};
+
+	this._buildConfigBox = function () {
+		filterDiv.append($('<div class="pf-box filter-settings left first caption">' +
+			'Filter settings' +
+			'</div>'));
+
+		filterDiv.append($('<div class="pf-box filter-settings left">' +
+			'<input type="checkbox" id="pf-bubbles">' +
+			'<label for="pf-bubbles">Info bubbles for filter actions</label>' +
+			'</div>'));
+
+		filterDiv.append($('<div class="pf-box filter-settings left">' +
+			'<input type="checkbox" id="pf-debug">' +
+			'<label for="pf-debug">Debug logging</label>' +
+			'</div>'));
+
+		filterDiv.append($('<div class="pf-box filter-settings left last">' +
+			'<input type="checkbox" id="pf-confirm">' +
+			'<label for="pf-confirm">Confirmation dialogs</label>' +
+			'</div>'));
+
+		// Enable checkbox
+		$('#pf-enable').attr('checked', conf.enabled).on('change', function () {
+			conf.enabled = $(this).is(':checked');
+			main.apply();
+
+			if (conf.enabled) {
+				ui.successBubble(null, 'Filter enabled');
+			} else {
+				ui.errorBubble(null, 'Filter disabled');
 			}
+		});
 
-			return home.createMarkerOrig(idx, pk);
-		};
+		// Bubbles checkbox
+		$('#pf-bubbles').attr('checked', conf.enabled).on('change', function () {
+			conf.bubbles = $(this).is(':checked');
+			conf.persist();
+
+			toastr.remove();
+			ui.successBubble(null, 'Filter info bubbles enabled');
+		});
+
+		// Debug checkbox
+		$('#pf-debug').attr('checked', conf.debug).on('change', function () {
+			conf.debug = $(this).is(':checked');
+			conf.persist();
+
+			if (conf.debug) {
+				ui.successBubble(null, 'Filter debug enabled');
+			} else {
+				ui.errorBubble(null, 'Filter debug disabled');
+			}
+		});
+
+		// Debug checkbox
+		$('#pf-confirm').attr('checked', conf.confirm_actions).on('change', function () {
+			conf.confirm_actions = $(this).is(':checked');
+			conf.persist();
+
+			if (conf.confirm_actions) {
+				ui.successBubble(null, 'Confirmation prompts enabled');
+			} else {
+				ui.errorBubble(null, 'Confirmation prompts disabled');
+			}
+		});
 	};
 
-	/** Replace the current blacklist page with the given IDs */
-	this.replaceBlacklist = function(newIds) {
-		self.blacklists[self.preset_n] = newIds;
-		self.blacklist = self.blacklists[self.preset_n]; // Fix reference
+	// endregion
 
-		self.updateFilterVisuals();
-		self.applyBlacklist();
-		self.persistConfig();
-	};
+	// region Specific Filters
 
-	/** Toggle a single Pokémon in the blacklist */
-	this.togglePokemon = function (id, state) {
-		id = +id; // cast
-
-		self.debug && console.log('[filter] Toggling pokemon:', id, '(' + pokedex[id] + ')');
-
-		var wantShow = self.isBlacklisted(id);
-
-		if (!_.isUndefined(state)) {
-			wantShow = state;
-		}
-
-		var elem = $('#filter-pokemon-id-' + id);
-
-		if (wantShow) {
-			// un-hide
-			delete self.blacklist[self.blacklist.indexOf(id)];
-			elem.removeClass('filter-hidden');
-		} else {
-			self.blacklist.push(id);
-			elem.addClass('filter-hidden');
-		}
-
-		// Hide / show
-		self.applyBlacklist();
-		self.persistConfig();
-	};
-
-	/** Build the filter UI */
-	this.buildUserInterface = function () {
-		self.debug && console.log("[filter] Building user interface...");
-
-		var sidebar = $('.home-sidebar');
-
-		var filterDiv = $('<div class="PokemonFilter"></div>');
-		sidebar.prepend(filterDiv);
-
-		// Top row with toggle buttons
-		var toggleBox = $('<div class="pf-box">' +
-			'<input type="checkbox" id="pf-enable">' +
-			'<label class="pf-title" for="pf-enable">Pokémon Filter</label>' +
-			'</div>');
-		for (var i = 0; i < self.blacklists.length; i++) {
-			toggleBox.append('<a class="pf-slot" id="pf-slot-'+i+'" data-n="'+i+'">'+(i+1)+'</a>');
-		}
-		filterDiv.append(toggleBox);
-		// Box with save slots
-
-		var slotBox = $('<div class="pf-box left" id="initial-buttons">' +
-			'<a class="pf-toggle" id="pf-show-all">Show all</a>' +
-			'<a class="pf-toggle" id="pf-hide-all">Hide all</a>' +
-			'<a class="pf-toggle" id="pf-spec-filter-menu">Specific Filters</a>' +
-			'</div>');
-		filterDiv.append(slotBox);
-
+	this._buildSpecFilterBox = function () {
+		// TODO clean up this mess
 
 		// Box for setting specific filters
 		var specFiltersBox = $('<div class="pf-specFilters" id="spec-filters-box" style="display: none"></div>');
+
 		//adding type-checkboxes
 		specFiltersBox.append('<label class="pf-title pf-box left">Types</label>');
-		for(var t = 0; t < pokeTypes.length; t++){
-			specFiltersBox.append('<div class="spec-check-element"><input type="checkbox" poketype="' + pokeTypes[t] + '" id="spec-toggle-' + pokeTypes[t] + '" class="spec-checkBox pokeType">' + '<label' +
-				' class="pf-title"' +
-				' for="spec-toggle-' + pokeTypes[t] + '">' + pokeTypes[t] + '</label></div>');
+		for (var t = 0; t < pokeTypes.length; t++) {
+			specFiltersBox.append('<div class="spec-check-element">' +
+				'<input type="checkbox" poketype="' + pokeTypes[t] + '" id="spec-toggle-' + pokeTypes[t] + '" class="spec-checkBox pokeType">' + '<label' +
+				' class="pf-title"' + ' for="spec-toggle-' + pokeTypes[t] + '">' + pokeTypes[t] + '</label></div>');
 		}
+
 		//adding rarity-checkboxes
 		specFiltersBox.append('<label class="pf-title pf-box left" >Rarities</label>');
-		for(var r = 0; r < pokeRarities.length; r++){
+		for (var r = 0; r < pokeRarities.length; r++) {
 			specFiltersBox.append('<div class="spec-check-element"><input type="checkbox" pokerarity="' + pokeRarities[r] + '" id="spec-toggle-' + pokeRarities[r] + '" class="spec-checkBox pokeRarity">' + '<label' +
 				' class="pf-title"' +
 				' for="spec-toggle-' + pokeRarities[r] + '">' + pokeRarities[r] + '</label></div>');
 		}
 		var buttonsBox = $('<div class="pf-box left">' +
-			'<a class="pf-toggle" id="spec-cancel-spec">CANCEL</a>' +
-			'<a class="pf-toggle" id="spec-apply-spec">REPLACE LIST</a>' +
+			'<a class="pf-toggle" id="spec-cancel-spec">Cancel</a>' +
+			'<a class="pf-toggle" id="spec-apply-spec">Apply filter</a>' +
 			'</div>');
 		specFiltersBox.append(buttonsBox);
 		filterDiv.append(specFiltersBox);
 
-
-		// Box with the pokémon images
-		var pokemonBox = $('<div id="pf-pokeBox"></div>');
-		for (var id = 1; id < TOTAL_POKEMON_COUNT + 1; id++) {
-			if (UNOBTAINABLES.indexOf(id) != -1) continue;
-
-			var img = document.createElement('img');
-			img.src = 'https://ugc.pokevision.com/images/pokemon/' + id + '.png';
-			img.title = pokedex[id] + ' - ' + id + '';
-			img.classList.add('x-filter-pokemon');
-			img.id = 'filter-pokemon-id-' + id;
-			img.dataset.id = id;
-
-			if (self.isBlacklisted(id)) {
-				img.classList.add('filter-hidden');
-			}
-			pokemonBox.append(img);
-		}
-		filterDiv.append(pokemonBox);
-
-		// Bubbles & debug checkboxes
-		filterDiv.append($('<div class="pf-box filter-settings left first">' +
-			'<input type="checkbox" id="pf-bubbles">' +
-			'<label for="pf-bubbles">Info bubbles for filter actions</label>' +
-			'</div>'));
-
-		filterDiv.append($('<div class="pf-box filter-settings left last">' +
-			'<input type="checkbox" id="pf-debug">' +
-			'<label for="pf-debug">Debug logging</label>' +
-			'</div>'));
-
-		// Selecting pages
-		$('#pf-slot-'+self.preset_n).addClass('active');
-		$('.pf-slot').on('click', function () {
-			$('.pf-slot').removeClass('active');
-			$(this).addClass('active');
-			var n = $(this).data('n');
-			self.selectBlacklistPage(n);
-		});
-
-		// Enable checkbox
-		$('#pf-enable').attr('checked', self.enabled).on('change', function() {
-			self.enabled = $(this).is(':checked');
-			self.applyBlacklist();
-			self.persistConfig();
-
-			if (self.enabled) {
-				self.successBubble(null, 'Filter enabled');
-			} else {
-				self.errorBubble(null, 'Filter disabled');
-			}
-		});
-
-		// Bubbles checkbox
-		$('#pf-bubbles').attr('checked', self.enabled).on('change', function() {
-			self.bubbles = $(this).is(':checked');
-			self.persistConfig();
-
-			toastr.remove();
-			self.successBubble(null, 'Filter info bubbles enabled');
-		});
-
-		// Debug checkbox
-		$('#pf-debug').attr('checked', self.debug).on('change', function() {
-			self.debug = $(this).is(':checked');
-			self.persistConfig();
-
-			if (self.debug) {
-				self.successBubble(null, 'Filter debug enabled');
-			} else {
-				self.errorBubble(null, 'Filter debug disabled');
-			}
-		});
-
-		// Toggle pokémon on click
-		$('.x-filter-pokemon').on('click', function () {
-			self.resetSpecCheckBoxes();
-			self.togglePokemon(this.dataset.id); // also applies and saves
-		});
-
-		// Hide & show buttons
-		$('#pf-hide-all').on('click', function () {
-			self.replaceBlacklist(_.range(1, TOTAL_POKEMON_COUNT+1));
-			self.resetSpecCheckBoxes();
-			self.successBubble('Enable the ones you want, then click the map or refresh the page.', 'All species hidden.')
-		});
-
-		$('#pf-show-all').on('click', function () {
-			self.replaceBlacklist([]);
-			self.setSpecCheckBoxes();
-			self.successBubble('Refresh the page or click the map to load them.', 'All species visible.')
-		});
-
+		// Button to show the spec box
 		$('#pf-spec-filter-menu').on('click', function () {
-			self.toggleSpecView();
+			ui._specToggleView();
 			previousSpecs = [];
 			var checkBoxesToSave = document.querySelectorAll('.spec-checkBox');
-			[].forEach.call(checkBoxesToSave, function(box){
+			[].forEach.call(checkBoxesToSave, function (box) {
 				previousSpecs[box.id] = box.checked;
 			});
 		});
 
+		// Button to close the box & abort
 		$('#spec-cancel-spec').on('click', function () {
-			self.toggleSpecView();
-			if(specsEdited){
-				self.rollBackSpecs();
+			ui._specToggleView();
+			if (specsEdited) {
+				ui._specRollback();
 				specsEdited = false;
-				self.errorBubble('Nothing changed. Previous spec-settings restored.', 'CANCELED')
+				//ui.errorBubble('Nothing changed. Previous spec-settings restored.', 'CANCELED')
 			}
 		});
 
+		// Button to close the box & apply spec filters
 		$('#spec-apply-spec').on('click', function () {
-			self.applySpecFilters();
-			self.toggleSpecView();
-			self.successBubble('Your chosen filters have replaced previous list. Now showing as you chose to filter.', 'Filters' +
-				' applied!')
+			if (ui.confirm('Apply filters? This will overwrite the current filter page.'))
+			ui._specApply();
+			ui._specToggleView();
+			ui.successBubble('Filters applied!');
 		});
 
+		// Mark change on checkbox click
 		$('.spec-checkBox').on('click', function () {
 			specsEdited = true;
 		});
 	};
 
-	this.applySpecFilters = function(){
+	this._specApply = function () {
 		var typesFilter = [];
 		var rarityFilter = [];
 		var idsToHide = [];
 
 		var typeBoxes = document.querySelectorAll(".spec-checkBox.pokeType");
-		[].forEach.call(typeBoxes, function(box){
-			if(box.checked){
+		[].forEach.call(typeBoxes, function (box) {
+			if (box.checked) {
 				typesFilter.push(box.getAttribute('poketype'));
 			}
 		});
-		if(typesFilter.length == 0){
+		if (typesFilter.length == 0) {
 			typesFilter = pokeTypes;
 		}
 
 		var rarityBoxes = document.querySelectorAll(".spec-checkBox.pokeRarity");
-		[].forEach.call(rarityBoxes, function(box){
-			if(box.checked){
+		[].forEach.call(rarityBoxes, function (box) {
+			if (box.checked) {
 				rarityFilter.push(box.getAttribute('pokerarity'));
 			}
 		});
-		if(rarityFilter.length == 0){
+		if (rarityFilter.length == 0) {
 			rarityFilter = pokeRarities;
 		}
 
-		[].forEach.call(pokeData, function(entry){
-			if(!rarityFilter.includes(entry.rarity) || !(typesFilter.includes(entry.type1) || typesFilter.includes(entry.type2))){
-				idsToHide.push(entry.dexNo)
+		[].forEach.call(pokeData, function (entry) {
+			if (!rarityFilter.includes(entry.rarity) || !(typesFilter.includes(entry.type1) || typesFilter.includes(entry.type2))) {
+				idsToHide.push(+entry.dexNo)
 			}
 		});
-		if(idsToHide.isEmpty){
-			self.replaceBlacklist([]);
-		}else{
-			self.replaceBlacklist(idsToHide);
-		}
+
+		conf.replaceBlacklist(idsToHide);
 	};
 
-	this.resetSpecCheckBoxes = function(){
+	this._specUncheckAll = function () {
 		var specBoxes = document.querySelectorAll(".spec-checkBox");
-		[].forEach.call(specBoxes, function(box) {
+		[].forEach.call(specBoxes, function (box) {
 			box.checked = false;
 		});
 	};
 
-	this.setSpecCheckBoxes = function(){
+	this._specCheckAll = function () {
 		var specBoxes = document.querySelectorAll(".spec-checkBox");
-		[].forEach.call(specBoxes, function(box) {
+		[].forEach.call(specBoxes, function (box) {
 			box.checked = true;
 		});
 	};
 
-	this.rollBackSpecs = function(){
+	this._specRollback = function () {
 		var checkBoxesToRestore = document.querySelectorAll('.spec-checkBox');
-		[].forEach.call(checkBoxesToRestore, function(box){
+		[].forEach.call(checkBoxesToRestore, function (box) {
 			box.checked = previousSpecs[box.id];
 		});
 	};
 
-	this.toggleSpecView = function(){
+	this._specToggleView = function () {
 		var toggleButtons = document.getElementById("initial-buttons");
 		toggleButtons.style.display = toggleButtons.style.display === 'none' ? '' : 'none';
 
-		var togglePokeBox = document.getElementById("pf-pokeBox");
+		var togglePokeBox = document.getElementById("pf-pokebox");
 		togglePokeBox.style.display = togglePokeBox.style.display === 'none' ? '' : 'none';
 
 		var toggleMenu = document.getElementById("spec-filters-box");
 		toggleMenu.style.display = toggleMenu.style.display === 'none' ? '' : 'none';
 	};
 
-	this.getWhiteList = function(){
-		var whiteList = [];
-		for(var i = 1; i <= TOTAL_POKEMON_COUNT; i++){
-			if(!self.blacklist.includes(i)){
-				whiteList.push(i);
-			}
-		}
-		if(whiteList.length == 0){
-			return [undefined];
-		}else{
-			return whiteList;
-		}
-	};
+	// endregion
 };
 
 // Start up
-PokemonFilter.init();
+PokeFilter.init();
