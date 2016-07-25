@@ -276,8 +276,6 @@ PokeFilter.ui = new function () {
 
 	/** Show a success bubble (green) */
 	this.successBubble = function (text, heading) {
-		conf.debug && console.log('[filter] ' + heading + ' ' + text);
-
 		if (!conf.bubbles) return;
 		toastr.remove();
 		app.success(text, heading);
@@ -285,8 +283,6 @@ PokeFilter.ui = new function () {
 
 	/** Show an error bubble (red) */
 	this.errorBubble = function (text, heading) {
-		conf.debug && console.log('[filter] ' + heading, ' ' + text);
-
 		if (!conf.bubbles) return;
 		toastr.remove();
 		app.error(text, heading);
