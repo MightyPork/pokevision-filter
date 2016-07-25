@@ -35,13 +35,11 @@ var PokeFilter = new function () {
 		// Apply classes to already placed pokemon
 		_.each(home.markers, function(marker, key) {
 			if (key == 'center') {
-				console.log('Found center', marker);
 				marker._icon.classList.add('pf-map-center');
 			} else {
 				var idx = key.match(/(\d+)$/)[1];
 				var poke = home.pokemon[+idx];
 				var id = poke.pokemonId;
-				console.log('Found poke '+dex.name(id));
 				main._decoratePokeMarker(marker, id);
 			}
 		});
