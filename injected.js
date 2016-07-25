@@ -240,6 +240,7 @@ PokeFilter.config = new function () {
 
 	this.getWhitelist = function () {
 		var all = _.range(1, main.TOTAL_POKEMON_COUNT + 1);
+		if (!conf.enabled) return all;
 		return _.difference(all, conf.getBlacklist());
 	};
 };
@@ -295,12 +296,14 @@ PokeFilter.ui = new function () {
 		// Update pokemon toggles
 		$('.x-filter-pokemon').each(function (n, elem) {
 			var id = $(elem).data('id');
-			$(elem).toggleClass('filter-hidden', conf.isPokemonHidden(id));
+			$(elem).toggleClass('filter-hidden', conf.isPokemonHidden(id, true));
 		});
 
 		// Mark current page as active
 		$('.pf-slot').removeClass('active');
 		$('#pf-slot-' + conf.page).addClass('active');
+
+		$('#pf-toggle-label').toggleClass('disabled', !conf.enabled);
 	};
 
 	// region Build UI
@@ -328,7 +331,7 @@ PokeFilter.ui = new function () {
 		// Top row with toggle buttons
 		var box1 = $('<div class="pf-box"></div>');
 		box1.append('<input type="checkbox" id="pf-enable">');
-		box1.append('<label class="pf-title" for="pf-enable">Pokémon Filter</label>');
+		box1.append('<label class="pf-title" for="pf-enable" id="pf-toggle-label">Pokémon Filter</label>');
 		for (var i = 0; i < conf.blacklists.length; i++) {
 			box1.append('<a class="pf-slot" id="pf-slot-' + i + '" data-n="' + i + '">' + (i + 1) + '</a>');
 		}

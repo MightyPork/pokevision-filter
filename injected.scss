@@ -26,7 +26,11 @@
 		color: #222;
 		font-weight: bold;
 		margin-bottom: 0;
-		cursor: pointer
+		cursor: pointer;
+
+		&.disabled {
+			color: crimson !important;
+		}
 	}
 
 	.pf-box {
