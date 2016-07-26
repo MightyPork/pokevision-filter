@@ -1,5 +1,10 @@
 "use strict";
 
+/* 
+ PokéVision Filter
+ Contribute at: https://github.com/MightyPork/pokevision-filter
+*/
+
 // Main 'class'
 var PokeFilter = new function () {
 	var main = this;
@@ -136,9 +141,6 @@ PokeFilter.config = new function () {
 	this.init = function () {
 		dex = PokeFilter.dex;
 	};
-
-	// The currently open blacklist is 'main.blacklist'.
-	// Gotta replace it in the blacklists array when saving.
 
 	/**
 	 * Load settings from localStorage

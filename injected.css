@@ -1,3 +1,8 @@
+@charset "UTF-8";
+/* 
+ PokéVision Filter
+ Contribute at: https://github.com/MightyPork/pokevision-filter
+*/
 .leaflet-marker-icon-wrapper {
   margin-left: -24px !important;
   margin-top: -24px !important; }
@@ -112,5 +117,3 @@
     color: #222;
     font-weight: bold;
     margin-bottom: 0; }
-
-/*# sourceMappingURL=injected.css.map */
